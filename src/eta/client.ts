@@ -93,5 +93,5 @@ export const ENDPOINTS = [
 ] as const;
 
 /** Public verification link printed as the QR code on every valid document. */
-export const publicDocumentUrl = (uuid: string, longId: string, env: 'preprod' | 'production' = 'production') =>
-  `https://${env === 'preprod' ? 'preprod.' : ''}invoicing.eta.gov.eg/documents/${uuid}/share/${longId}`;
+export const publicDocumentUrl = (uuid: string, longId: string, env: 'simulator' | 'preprod' | 'production' = 'production') =>
+  `https://${env !== 'production' ? 'preprod.' : ''}invoicing.eta.gov.eg/documents/${uuid}/share/${longId}`;

@@ -15,7 +15,7 @@ export function EnvPill() {
   return (
     <Link to="/app/settings/integration" className={cx('hidden md:inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border text-[12px] font-medium',
       prod ? 'border-ok/25 bg-ok-soft text-ok' : 'border-warn/30 bg-warn-soft text-warn')} title={L('ETA environment', 'بيئة المصلحة')}>
-      <Server className="size-3.5" />{prod ? L('ETA production', 'إنتاج المصلحة') : L('ETA pre-production', 'بيئة الاختبار')}
+      <Server className="size-3.5" />{prod ? L('ETA production', 'إنتاج المصلحة') : db.integration.env === 'simulator' ? L('ETA simulator', 'محاكي المصلحة') : L('ETA pre-production', 'بيئة الاختبار')}
     </Link>
   );
 }
@@ -23,13 +23,14 @@ export function EnvPill() {
 function SignerPill() {
   const { db } = useStore();
   const { L } = useI18n();
-  const on = db.signing.agent.status === 'online';
+  const cert = db.signing.method === 'test-certificate';
+  const on = cert || db.signing.agent.status === 'online';
   return (
     <Link to="/app/settings/signing" className="hidden md:inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-line bg-surface text-[12px] font-medium text-ink-muted hover:text-ink"
       title={L('Signing agent', 'وكيل التوقيع')}>
       <Usb className="size-3.5" />
       <span className={cx('size-1.5 rounded-full', on ? 'bg-ok' : 'bg-bad')} />
-      {on ? L('Signer online', 'التوقيع متصل') : L('Signer offline', 'التوقيع غير متصل')}
+      {cert ? L('Test certificate', 'شهادة اختبار') : on ? L('Signer online', 'التوقيع متصل') : L('Signer offline', 'التوقيع غير متصل')}
     </Link>
   );
 }
@@ -79,6 +80,7 @@ export function AppLayout() {
   }, [db.docs, db.customers, L]);
 
   if (!db.session.signedIn) return <Navigate to="/signin" replace />;
+  if (db.session.staffRole && !db.session.tenantId) return <Navigate to="/admin" replace />;
   if (!db.session.onboarded) return <Navigate to="/onboarding" replace />;
 
   return (

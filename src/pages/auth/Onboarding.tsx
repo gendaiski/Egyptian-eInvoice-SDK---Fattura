@@ -4,20 +4,25 @@ import { useNavigate } from 'react-router-dom';
 import { ACTIVITY_CODES, GOVERNORATES } from '@/eta/codes';
 import { mockEta } from '@/eta/mockClient';
 import { bi, useI18n } from '@/i18n';
-import { useStore } from '@/store/store';
+import { useAuth, useStore } from '@/store/store';
+import { api } from '@/lib/api';
+import type { Integration } from '@/store/model';
 import { Logo } from '@/components/brand';
 import { Button, Callout, Field, Input, Segmented, Select, cx } from '@/components/ui';
 import { Prefs } from '@/layouts/Shell';
 
 export function Onboarding() {
-  const { db, set } = useStore();
+  const { db, mode, reload } = useStore();
+  const auth = useAuth();
+  const live = mode === 'api';
   const { L, lang } = useI18n();
+  const [err, setErr] = useState('');
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [co, setCo] = useState({ name: db.company.name, nameAr: db.company.nameAr, rin: '', activity: db.company.activityCode });
   const [rinState, setRinState] = useState<'idle' | 'busy' | 'ok'>('idle');
   const [addr, setAddr] = useState({ ...db.company.branches[0].address });
-  const [env, setEnv] = useState<'preprod' | 'production'>('preprod');
+  const [env, setEnv] = useState<Integration['env']>(live ? 'simulator' : 'preprod');
   const [cid, setCid] = useState('');
   const [secret, setSecret] = useState('');
   const [conn, setConn] = useState<'idle' | 'busy' | 'ok'>('idle');
@@ -29,8 +34,30 @@ export function Onboarding() {
     { title: L('ETA connection', 'الربط مع المصلحة'), icon: <KeyRound className="size-4" />, ok: conn === 'ok' },
     { title: L('Signing', 'التوقيع'), icon: <Usb className="size-4" />, ok: signer === 'ok' },
   ];
-  const finish = () => {
-    set((x) => {
+  const companyPayload = () => ({ ...db.company, name: co.name, nameAr: co.nameAr || co.name, rin: co.rin, activityCode: co.activity, branches: db.company.branches.map((b, i) => i === 0 ? { ...b, address: { ...addr, branchID: '0' } } : b) });
+  /** API mode: persist what the step needs before calling the server, and surface its errors inline. */
+  const step$ = async (fn: () => Promise<void>, setState: (v: 'idle' | 'busy' | 'ok') => void) => {
+    setErr(''); setState('busy');
+    try { await fn(); setState('ok'); } catch (e) { setErr((e as Error).message); setState('idle'); }
+  };
+  const testLive = () => step$(async () => {
+    await api('PUT', '/data/singleton/company', companyPayload());
+    await api('PUT', '/data/singleton/integration', { env, clientId: env === 'simulator' ? 'simulator' : cid });
+    if (env !== 'simulator') await api('POST', '/actions/integration/secret', { secret });
+    await api('POST', '/actions/integration/test');
+  }, setConn);
+  const signLive = (method: 'test-certificate' | 'usb-token') => step$(async () => {
+    if (method === 'test-certificate') await api('POST', '/actions/signing/test-certificate');
+    else await api('PUT', '/data/singleton/signing', { method });
+    await reload();
+  }, setSigner);
+  const finish = async () => {
+    if (live) {
+      try { await api('PUT', '/data/singleton/company', companyPayload()); await auth.completeOnboarding(() => {}); nav('/app'); }
+      catch (e) { setErr((e as Error).message); }
+      return;
+    }
+    await auth.completeOnboarding((x) => {
       x.company.name = co.name; x.company.nameAr = co.nameAr || co.name; x.company.rin = co.rin; x.company.activityCode = co.activity;
       x.company.branches[0].address = { ...addr, branchID: '0' };
       x.integration = { ...x.integration, env, clientId: cid, secretSet: true, status: 'connected', lastTokenAt: new Date().toISOString() };
@@ -84,12 +111,13 @@ export function Onboarding() {
           {step === 2 && (
             <div className="space-y-5">
               <div><h1 className="text-[22px] font-semibold">{L('Connect to ETA', 'الربط مع المصلحة')}</h1><p className="text-ink-muted mt-1">{L('On the ETA portal, open Taxpayer profile → ERP systems, register “Fatura”, and paste the credentials below.', 'من بوابة المصلحة: ملف الممول ← أنظمة ERP، سجّل "فاتورة" والصق البيانات هنا.')}</p></div>
-              <Segmented value={env} onChange={setEnv} options={[{ value: 'preprod', label: L('Pre-production (recommended first)', 'بيئة الاختبار (موصى بها أولاً)') }, { value: 'production', label: L('Production', 'الإنتاج') }]} />
-              <div className="grid gap-4 sm:grid-cols-2">
+              <Segmented value={env} onChange={(v) => { setConn('idle'); setEnv(v); }} options={[...(live ? [{ value: 'simulator' as const, label: L('Simulator', 'المحاكي') }] : []), { value: 'preprod', label: L('Pre-production (recommended first)', 'بيئة الاختبار (موصى بها أولاً)') }, { value: 'production', label: L('Production', 'الإنتاج') }]} />
+              {env === 'simulator' && <Callout tone="info" title={L('No ETA credentials needed', 'لا حاجة لبيانات المصلحة')}>{L('Fatura’s built-in ETA simulator validates and signs documents exactly like ETA, without sending anything to the Tax Authority. Switch to pre-production in Settings when your ETA ERP credentials are ready.', 'يتحقق المحاكي من المستندات مثل المصلحة دون إرسالها. انتقل لبيئة الاختبار من الإعدادات عند جاهزية بيانات المصلحة.')}</Callout>}
+              {env !== 'simulator' && <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={L('Client ID', 'معرّف العميل')}>{(id) => <Input id={id} dir="ltr" className="font-mono text-[13px]" value={cid} onChange={(e) => { setConn('idle'); setCid(e.target.value.trim()); }} placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />}</Field>
                 <Field label={L('Client secret', 'السر')}>{(id) => <Input id={id} type="password" dir="ltr" value={secret} onChange={(e) => { setConn('idle'); setSecret(e.target.value); }} />}</Field>
-              </div>
-              <Button variant="secondary" disabled={!cid || !secret} loading={conn === 'busy'} icon={<KeyRound className="size-4" />} onClick={async () => { setConn('busy'); await mockEta.login(); await mockEta.getDocumentTypes(); setConn('ok'); }}>{L('Test connection', 'اختبار الاتصال')}</Button>
+              </div>}
+              <Button variant="secondary" disabled={env !== 'simulator' && (!cid || !secret)} loading={conn === 'busy'} icon={<KeyRound className="size-4" />} onClick={live ? testLive : async () => { setConn('busy'); await mockEta.login(); await mockEta.getDocumentTypes(); setConn('ok'); }}>{L('Test connection', 'اختبار الاتصال')}</Button>
               {conn === 'ok' && <Callout tone="ok" title={L('Connected. Token issued and document types loaded.', 'تم الاتصال وتحميل أنواع المستندات.')} />}
             </div>
           )}
@@ -101,18 +129,25 @@ export function Onboarding() {
                 <li className="flex gap-3"><span className="size-6 rounded-full bg-sunken grid place-items-center text-[12px] font-semibold shrink-0">2</span>{L('Plug in the token and sign in to the agent with this account.', 'وصّل التوكن وسجّل الدخول في البرنامج.')}</li>
                 <li className="flex gap-3"><span className="size-6 rounded-full bg-sunken grid place-items-center text-[12px] font-semibold shrink-0">3</span>{L('Click “Detect” — we sign a test document and verify the certificate belongs to your RIN.', 'اضغط "اكتشاف" — نوقّع مستنداً تجريبياً ونتحقق من الشهادة.')}</li>
               </ol>
-              <Button variant="secondary" loading={signer === 'busy'} icon={signer === 'busy' ? <Loader2 className="size-4 animate-spin" /> : <Usb className="size-4" />} onClick={async () => { setSigner('busy'); await new Promise((r) => setTimeout(r, 1200)); setSigner('ok'); }}>{L('Detect signer', 'اكتشاف برنامج التوقيع')}</Button>
-              {signer === 'ok' && <Callout tone="ok" title={L(`Token found on ${db.signing.agent.host}`, `تم العثور على التوكن على ${db.signing.agent.host}`)}>{db.signing.certificate.issuer} · {db.signing.certificate.subject}</Callout>}
+              {live ? (
+                <div className="flex flex-wrap gap-2">
+                  {env !== 'production' && <Button variant="secondary" loading={signer === 'busy'} onClick={() => signLive('test-certificate')}>{L('Use a test certificate for now', 'استخدم شهادة اختبار الآن')}</Button>}
+                  <Button variant="secondary" icon={<Usb className="size-4" />} disabled={signer === 'busy'} onClick={() => signLive('usb-token')}>{L('I’ll pair my USB token in Settings', 'سأقرن التوكن من الإعدادات')}</Button>
+                </div>
+              ) : <Button variant="secondary" loading={signer === 'busy'} icon={signer === 'busy' ? <Loader2 className="size-4 animate-spin" /> : <Usb className="size-4" />} onClick={async () => { setSigner('busy'); await new Promise((r) => setTimeout(r, 1200)); setSigner('ok'); }}>{L('Detect signer', 'اكتشاف برنامج التوقيع')}</Button>}
+              {signer === 'ok' && live && <Callout tone="ok" title={db.signing.method === 'test-certificate' ? L('Test certificate ready', 'شهادة الاختبار جاهزة') : L('Documents will wait for your signer', 'ستنتظر المستندات برنامج التوقيع')}>{db.signing.method === 'test-certificate' ? `${db.signing.certificate.subject}` : L('Pair Fatura Signer from Settings → Signing; queued documents are signed as soon as it connects.', 'اقرن البرنامج من الإعدادات ← التوقيع؛ تُوقّع المستندات فور اتصاله.')}</Callout>}
+              {signer === 'ok' && !live && <Callout tone="ok" title={L(`Token found on ${db.signing.agent.host}`, `تم العثور على التوكن على ${db.signing.agent.host}`)}>{db.signing.certificate.issuer} · {db.signing.certificate.subject}</Callout>}
             </div>
           )}
           {step === 4 && (
             <div className="text-center py-6">
               <div className="size-14 mx-auto rounded-full bg-ok-soft text-ok grid place-items-center"><PartyPopper className="size-6" /></div>
               <h1 className="text-[24px] font-semibold mt-4">{L('You are ready to invoice', 'أنت جاهز لإصدار الفواتير')}</h1>
-              <p className="text-ink-muted mt-2 max-w-[44ch] mx-auto">{env === 'preprod' ? L('Issue a few test invoices on pre-production, then switch to production in Settings → ETA connection.', 'أصدر فواتير تجريبية ثم انتقل للإنتاج من الإعدادات.') : L('Next: add your items and request their EGS codes, then issue your first invoice.', 'التالي: أضف أصنافك واطلب أكواد EGS ثم أصدر أول فاتورة.')}</p>
+              <p className="text-ink-muted mt-2 max-w-[44ch] mx-auto">{env !== 'production' ? L('Issue a few test invoices on pre-production, then switch to production in Settings → ETA connection.', 'أصدر فواتير تجريبية ثم انتقل للإنتاج من الإعدادات.') : L('Next: add your items and request their EGS codes, then issue your first invoice.', 'التالي: أضف أصنافك واطلب أكواد EGS ثم أصدر أول فاتورة.')}</p>
               <Button variant="primary" size="lg" className="mt-6" icon={<CheckCircle2 className="size-4" />} onClick={finish}>{L('Go to dashboard', 'الذهاب للوحة التحكم')}</Button>
             </div>
           )}
+          {err && <div className="mt-5"><Callout tone="bad">{err}</Callout></div>}
           {step < 4 && (
             <div className="flex justify-between mt-8 pt-5 border-t border-line">
               <Button variant="ghost" disabled={step === 0} onClick={() => setStep(step - 1)}>{L('Back', 'رجوع')}</Button>

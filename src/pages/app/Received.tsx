@@ -5,11 +5,12 @@ import { DOCUMENT_TYPES } from '@/eta/mockClient';
 import { useI18n } from '@/i18n';
 import { docTotal, docVat, windowHoursLeft } from '@/store/model';
 import { useActions, useStore } from '@/store/store';
+import { api, reportApiError } from '@/lib/api';
 import { Badge, Button, Callout, Card, EmptyState, Input, Money, Mono, PageHeader, StatusBadge, Table, Tabs, Td, Th, useToast } from '@/components/ui';
 import { useLabels } from './shared';
 
 export function Received() {
-  const { db } = useStore();
+  const { db, mode, reload } = useStore();
   const actions = useActions();
   const { L, date, money } = useI18n();
   const lb = useLabels();
@@ -29,7 +30,7 @@ export function Received() {
     <div className="animate-in">
       <PageHeader title={L('Received documents', 'المستندات الواردة')}
         description={L('Purchase invoices your suppliers registered with ETA against your tax number. Pulled with Search Documents (direction = Received).', 'فواتير المشتريات المسجلة على رقمك الضريبي من الموردين.')}
-        actions={<Button icon={<RefreshCw className={syncing ? 'size-4 animate-spin' : 'size-4'} />} onClick={async () => { setSyncing(true); await new Promise((r) => setTimeout(r, 900)); setSyncing(false); toast({ tone: 'ok', text: L('Up to date with ETA.', 'محدثة مع المصلحة.') }); }}>{L('Sync now', 'مزامنة الآن')}</Button>} />
+        actions={<Button icon={<RefreshCw className={syncing ? 'size-4 animate-spin' : 'size-4'} />} onClick={async () => { setSyncing(true); if (mode === 'api') { try { await api('POST', '/actions/received/sync'); await reload(); } catch (e) { reportApiError(e); setSyncing(false); return; } } else await new Promise((r) => setTimeout(r, 900)); setSyncing(false); toast({ tone: 'ok', text: L('Up to date with ETA.', 'محدثة مع المصلحة.') }); }}>{L('Sync now', 'مزامنة الآن')}</Button>} />
 
       <div className="grid gap-3 sm:grid-cols-3 mb-5">
         <div className="card p-4"><div className="text-[12.5px] text-ink-muted">{L('Valid purchase documents', 'مستندات شراء صالحة')}</div><div className="text-[24px] font-semibold tabular mt-1">{all.filter((d) => d.status === 'Valid').length}</div></div>

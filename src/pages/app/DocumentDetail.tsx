@@ -63,9 +63,9 @@ function Detail({ doc }: { doc: Doc }) {
     if (isInvoice && due.outstanding > 0) headerActions.push(<Button key="pay" variant="primary" icon={<Wallet className="size-4" />} onClick={() => setDialog('pay')}>{L('Record payment', 'تسجيل دفعة')}</Button>);
   }
   if (doc.status === 'Invalid' && sent) {
-    headerActions.push(<Button key="fix" variant="primary" icon={<CopyIcon className="size-4" />} onClick={() => {
+    headerActions.push(<Button key="fix" variant="primary" icon={<CopyIcon className="size-4" />} onClick={async () => {
       const copy: Doc = { ...structuredClone(doc), id: uid('d'), status: 'Draft', internalID: actions.nextNumber(doc.documentType), uuid: undefined, longId: undefined, submissionId: undefined, submittedAt: undefined, validatedAt: undefined, steps: undefined, payments: [], issuedAt: new Date().toISOString(), events: [{ at: new Date().toISOString(), type: 'created', by: db.session.user.name, note: `Corrected copy of ${doc.internalID}` }] };
-      actions.saveDoc(copy);
+      try { await actions.saveDoc(copy); } catch { return; }
       nav(`/app/documents/${copy.id}/edit`);
     }}>{L('Correct & resubmit', 'تصحيح وإعادة الإرسال')}</Button>);
   }

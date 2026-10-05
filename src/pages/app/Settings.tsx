@@ -1,5 +1,5 @@
 import {
-  Building, CheckCircle2, CreditCard, Database, Download, GitBranch, Hash, KeyRound, Loader2, Plug, Plus, RotateCcw, Server, ShieldCheck, Usb, UserPlus, Users,
+  Building, CheckCircle2, Code2, CreditCard, Database, Download, FileKey, GitBranch, Hash, KeyRound, Loader2, Plug, Plus, RotateCcw, Server, ShieldCheck, Usb, UserPlus, Users,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
@@ -8,12 +8,14 @@ import { ENDPOINTS } from '@/eta/client';
 import { ACTIVITY_CODES, GOVERNORATES } from '@/eta/codes';
 import { DOCUMENT_TYPES, mockEta } from '@/eta/mockClient';
 import { bi, useI18n } from '@/i18n';
-import { formatNumber, uid, type Branch, type Member } from '@/store/model';
+import { api, reportApiError } from '@/lib/api';
+import { formatNumber, uid, type Branch, type Integration, type Member, type Signing } from '@/store/model';
 import { useStore } from '@/store/store';
 import {
   Avatar, Badge, Button, Callout, Card, DescList, Field, Input, Modal, Money, Mono, PageHeader, Progress, Segmented, Select, Switch, Table, Td, Th, cx, useToast,
 } from '@/components/ui';
 import { useLabels } from './shared';
+import { DevelopersSection, SignerAgents } from './SettingsApi';
 
 export function Settings() {
   const { section = 'company' } = useParams();
@@ -25,13 +27,14 @@ export function Settings() {
     { id: 'integration', label: L('ETA connection', 'الربط مع المصلحة'), icon: <Plug /> },
     { id: 'signing', label: L('Signing & certificate', 'التوقيع والشهادة'), icon: <Usb /> },
     { id: 'team', label: L('Team & roles', 'الفريق والأدوار'), icon: <Users /> },
+    { id: 'developers', label: L('API & webhooks', 'الواجهة البرمجية'), icon: <Code2 /> },
     { id: 'numbering', label: L('Numbering & defaults', 'الترقيم والافتراضيات'), icon: <Hash /> },
     { id: 'billing', label: L('Plan & billing', 'الباقة والفوترة'), icon: <CreditCard /> },
     { id: 'data', label: L('Data & export', 'البيانات والتصدير'), icon: <Database /> },
   ];
   const body: Record<string, ReactNode> = {
     company: <CompanySection />, branches: <BranchesSection />, integration: <IntegrationSection />, signing: <SigningSection />,
-    team: <TeamSection />, numbering: <NumberingSection />, billing: <BillingSection />, data: <DataSection />,
+    team: <TeamSection />, developers: <DevelopersGate />, numbering: <NumberingSection />, billing: <BillingSection />, data: <DataSection />,
   };
   return (
     <div className="animate-in">
@@ -106,19 +109,36 @@ function BranchesSection() {
   );
 }
 
+function DevelopersGate() {
+  const { mode } = useStore();
+  const { L } = useI18n();
+  if (mode === 'api') return <DevelopersSection />;
+  return (
+    <Card title={L('API & webhooks', 'الواجهة البرمجية')}>
+      <Callout tone="info" title={L('Available on the Fatura server', 'متاح على خادم فاتورة')}>
+        {L('This demo runs entirely in your browser. On a Fatura workspace you create API keys for your ERP here and register webhook endpoints. See the Developers page for the API reference.', 'هذا العرض يعمل داخل المتصفح. في مساحة عمل فاتورة تنشئ هنا مفاتيح الواجهة البرمجية وعناوين الإشعارات.')}
+      </Callout>
+    </Card>
+  );
+}
+
 function IntegrationSection() {
-  const { db, set } = useStore();
+  const { db, set, mode, reload } = useStore();
   const { L, date } = useI18n();
   const toast = useToast();
   const [testing, setTesting] = useState(false);
   const [result, setResult] = useState<null | { ms: number }>(null);
   const [secret, setSecret] = useState('');
-  const [envConfirm, setEnvConfirm] = useState<'preprod' | 'production' | null>(null);
+  const [envConfirm, setEnvConfirm] = useState<Integration['env'] | null>(null);
   const it = db.integration;
-  const host = (h: 'id' | 'api') => it.env === 'production' ? (h === 'id' ? 'https://id.eta.gov.eg' : 'https://api.invoicing.eta.gov.eg') : (h === 'id' ? 'https://id.preprod.eta.gov.eg' : 'https://api.preprod.invoicing.eta.gov.eg');
+  const host = (h: 'id' | 'api') => it.env === 'simulator' ? (h === 'id' ? 'Fatura ETA simulator' : 'in-process, no data leaves Fatura') : it.env === 'production' ? (h === 'id' ? 'https://id.eta.gov.eg' : 'https://api.invoicing.eta.gov.eg') : (h === 'id' ? 'https://id.preprod.eta.gov.eg' : 'https://api.preprod.invoicing.eta.gov.eg');
   const test = async () => {
     setTesting(true); setResult(null);
     const t = Date.now();
+    if (mode === 'api') {
+      try { const r = await api<{ ms: number }>('POST', '/actions/integration/test'); setResult({ ms: r.ms }); } catch (e) { reportApiError(e); }
+      await reload(); setTesting(false); return;
+    }
     await mockEta.login(); await mockEta.getDocumentTypes();
     set((x) => { x.integration.status = 'connected'; x.integration.lastTokenAt = new Date().toISOString(); });
     setResult({ ms: Date.now() - t }); setTesting(false);
@@ -130,7 +150,8 @@ function IntegrationSection() {
         <div className="space-y-5">
           <div>
             <span className="label">{L('Environment', 'البيئة')}</span>
-            <Segmented value={it.env} onChange={(v) => v !== it.env && setEnvConfirm(v)} options={[{ value: 'preprod', label: L('Pre-production (testing)', 'بيئة الاختبار') }, { value: 'production', label: L('Production', 'الإنتاج') }]} />
+            <Segmented value={it.env} onChange={(v) => v !== it.env && setEnvConfirm(v)} options={[...(mode === 'api' ? [{ value: 'simulator' as const, label: L('Simulator', 'المحاكي') }] : []), { value: 'preprod', label: L('Pre-production (testing)', 'بيئة الاختبار') }, { value: 'production', label: L('Production', 'الإنتاج') }]} />
+            {it.env === 'simulator' && <p className="mt-2 text-[12.5px] text-ink-muted">{L('The simulator validates, signs and routes documents exactly like ETA, but nothing reaches the Tax Authority. Switch to pre-production with your ETA credentials when ready.', 'المحاكي يتحقق ويوقّع ويوجّه المستندات مثل المصلحة دون إرسال فعلي. انتقل لبيئة الاختبار ببيانات المصلحة عند الاستعداد.')}</p>}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={L('Client ID', 'معرّف العميل')}>{(id) => <Input id={id} dir="ltr" value={it.clientId} onChange={(e) => set((x) => { x.integration.clientId = e.target.value.trim(); })} className="font-mono text-[13px]" />}</Field>
@@ -138,7 +159,11 @@ function IntegrationSection() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="primary" icon={<KeyRound className="size-4" />} loading={testing} onClick={test}>{L('Test connection', 'اختبار الاتصال')}</Button>
-            {secret && <Button onClick={() => { set((x) => { x.integration.secretSet = true; }); setSecret(''); toast({ tone: 'ok', text: L('Secret rotated.', 'تم تغيير السر.') }); }}>{L('Save secret', 'حفظ السر')}</Button>}
+            {secret && <Button onClick={async () => {
+              if (mode === 'api') { try { await api('POST', '/actions/integration/secret', { secret }); } catch (e) { reportApiError(e); return; } await reload(); }
+              else set((x) => { x.integration.secretSet = true; });
+              setSecret(''); toast({ tone: 'ok', text: L('Secret saved and encrypted.', 'تم حفظ السر وتشفيره.') });
+            }}>{L('Save secret', 'حفظ السر')}</Button>}
             {it.lastTokenAt && <span className="text-[12.5px] text-ink-subtle">{L('Last token issued', 'آخر رمز')} {date(it.lastTokenAt, 'datetime')}</span>}
           </div>
           {result && (
@@ -162,16 +187,16 @@ function IntegrationSection() {
           <tbody>{ENDPOINTS.map((e) => <tr key={e.op}><Td>{e.op}</Td><Td><Badge tone={e.method === 'GET' ? 'info' : e.method === 'POST' ? 'accent' : 'warn'}>{e.method}</Badge></Td><Td><Mono className="text-ink-muted">{e.path}</Mono></Td></tr>)}</tbody>
         </Table>
       </Card>
-      <Modal open={!!envConfirm} onClose={() => setEnvConfirm(null)} size="sm" title={envConfirm === 'production' ? L('Switch to production?', 'التحويل للإنتاج؟') : L('Switch to pre-production?', 'التحويل لبيئة الاختبار؟')}
-        footer={<><Button onClick={() => setEnvConfirm(null)}>{L('Cancel', 'إلغاء')}</Button><Button variant="primary" onClick={() => { set((x) => { x.integration.env = envConfirm!; x.integration.status = 'not_configured'; }); setEnvConfirm(null); }}>{L('Switch', 'تحويل')}</Button></>}>
-        <p className="text-ink-muted">{envConfirm === 'production' ? L('Documents you submit will be legally issued. Enter your production client ID and secret, then test the connection.', 'المستندات التي ترسلها ستكون صادرة قانونياً. أدخل بيانات الإنتاج ثم اختبر الاتصال.') : L('Documents will go to the ETA test environment and have no tax effect.', 'ستُرسل المستندات لبيئة الاختبار دون أثر ضريبي.')}</p>
+      <Modal open={!!envConfirm} onClose={() => setEnvConfirm(null)} size="sm" title={envConfirm === 'production' ? L('Switch to production?', 'التحويل للإنتاج؟') : envConfirm === 'simulator' ? L('Switch to the simulator?', 'التحويل للمحاكي؟') : L('Switch to pre-production?', 'التحويل لبيئة الاختبار؟')}
+        footer={<><Button onClick={() => setEnvConfirm(null)}>{L('Cancel', 'إلغاء')}</Button><Button variant="primary" onClick={() => { set((x) => { x.integration.env = envConfirm!; x.integration.status = envConfirm === 'simulator' ? 'connected' : 'not_configured'; }); setEnvConfirm(null); }}>{L('Switch', 'تحويل')}</Button></>}>
+        <p className="text-ink-muted">{envConfirm === 'simulator' ? L('Documents are validated by Fatura’s built-in ETA simulator and never reach the Tax Authority.', 'تتحقق محاكاة فاتورة من المستندات دون إرسالها للمصلحة.') : envConfirm === 'production' ? L('Documents you submit will be legally issued. Enter your production client ID and secret, then test the connection.', 'المستندات التي ترسلها ستكون صادرة قانونياً. أدخل بيانات الإنتاج ثم اختبر الاتصال.') : L('Documents will go to the ETA test environment and have no tax effect.', 'ستُرسل المستندات لبيئة الاختبار دون أثر ضريبي.')}</p>
       </Modal>
     </>
   );
 }
 
 function SigningSection() {
-  const { db, set } = useStore();
+  const { db, set, mode, reload } = useStore();
   const { L, date, rel } = useI18n();
   const toast = useToast();
   const [testing, setTesting] = useState(false);
@@ -180,12 +205,13 @@ function SigningSection() {
   return (
     <>
       <Card title={L('How documents are signed', 'طريقة توقيع المستندات')} subtitle={L('ETA requires a CAdES-BES signature from a certificate issued to your company.', 'تتطلب المصلحة توقيعاً بشهادة صادرة لشركتك.')}>
-        <div role="radiogroup" className="grid gap-2 sm:grid-cols-3">
+        <div role="radiogroup" className={cx('grid gap-2 sm:grid-cols-3', mode === 'api' && 'sm:grid-cols-2 xl:grid-cols-4')}>
           {([
+            ...(mode === 'api' ? [['test-certificate', L('Test certificate', 'شهادة اختبار'), L('A self-signed certificate held by Fatura. For the simulator and pre-production only.', 'شهادة ذاتية تحتفظ بها فاتورة. للمحاكي وبيئة الاختبار فقط.')] as const] : []),
             ['usb-token', L('USB token + Fatura Signer', 'توكن USB + برنامج التوقيع'), L('A small Windows/macOS agent on the PC holding the token. Most common.', 'برنامج صغير على الجهاز المتصل بالتوكن. الأكثر شيوعاً.')],
             ['hsm', L('HSM (on-premise)', 'HSM داخلي'), L('For high volumes and unattended recurring submission.', 'للكميات الكبيرة والإرسال التلقائي.')],
             ['cloud', L('Cloud signing (eSeal)', 'توقيع سحابي'), L('A remote seal from a licensed provider — no hardware.', 'ختم عن بُعد من مزود مرخص — بلا أجهزة.')],
-          ] as const).map(([k, t, d]) => (
+          ] as (readonly [Signing['method'], string, string])[]).map(([k, t, d]) => (
             <button key={k} role="radio" aria-checked={s.method === k} onClick={() => set((x) => { x.signing.method = k; })}
               className={cx('text-start rounded-md border p-3', s.method === k ? 'border-accent ring-1 ring-accent bg-accent-soft/50' : 'border-line hover:border-ink-subtle/50')}>
               <span className={cx('block font-semibold', s.method === k ? 'text-accent' : 'text-ink')}>{t}</span>
@@ -204,7 +230,7 @@ function SigningSection() {
           <div className="flex flex-wrap gap-2 mt-4">
             <Button icon={<Download className="size-4" />} onClick={() => toast({ tone: 'info', text: L('Installer download started.', 'بدأ تنزيل البرنامج.') })}>{L('Download agent', 'تنزيل البرنامج')}</Button>
             <Button loading={testing} icon={<ShieldCheck className="size-4" />} onClick={async () => { setTesting(true); await new Promise((r) => setTimeout(r, 900)); setTesting(false); toast({ tone: 'ok', text: L('Test signature created and verified.', 'تم إنشاء توقيع تجريبي والتحقق منه.') }); }}>{L('Test signature', 'توقيع تجريبي')}</Button>
-            <Button variant="ghost" onClick={() => set((x) => { x.signing.agent.status = x.signing.agent.status === 'online' ? 'offline' : 'online'; x.signing.agent.lastSeen = new Date().toISOString(); })}>{L('Simulate disconnect', 'محاكاة الانقطاع')}</Button>
+            {mode === 'local' && <Button variant="ghost" onClick={() => set((x) => { x.signing.agent.status = x.signing.agent.status === 'online' ? 'offline' : 'online'; x.signing.agent.lastSeen = new Date().toISOString(); })}>{L('Simulate disconnect', 'محاكاة الانقطاع')}</Button>}
           </div>
         </Card>
         <Card title={L('Signing certificate', 'شهادة التوقيع')}>
@@ -215,8 +241,14 @@ function SigningSection() {
             { k: L('Expires', 'تنتهي'), v: <span className={days < 60 ? 'text-warn font-medium' : ''}>{date(s.certificate.expires, 'long')} · {L(`${days} days`, `${days} يوماً`)}</span> },
           ]} />
           <Progress className="mt-4" value={days / 365} tone={days < 30 ? 'bad' : days < 60 ? 'warn' : 'ok'} />
+          {mode === 'api' && db.integration.env !== 'production' && (
+            <Button className="mt-4" icon={<FileKey className="size-4" />} onClick={async () => {
+              try { await api('POST', '/actions/signing/test-certificate'); await reload(); toast({ tone: 'ok', text: L('Test certificate generated. Documents will be signed with it.', 'تم إنشاء شهادة اختبار وسيتم التوقيع بها.') }); } catch (e) { reportApiError(e); }
+            }}>{L('Generate test certificate', 'إنشاء شهادة اختبار')}</Button>
+          )}
         </Card>
       </div>
+      {mode === 'api' && <SignerAgents />}
     </>
   );
 }
@@ -352,7 +384,7 @@ function BillingSection() {
 }
 
 function DataSection() {
-  const { reset } = useStore();
+  const { reset, mode } = useStore();
   const { L } = useI18n();
   const toast = useToast();
   const [confirm, setConfirm] = useState(false);
@@ -362,9 +394,9 @@ function DataSection() {
       <Card title={L('Export everything', 'تصدير كل شيء')} subtitle={L('A full archive of documents (JSON as submitted, PDFs, validation results) for your auditors. ETA requires you to keep records for 5 years.', 'أرشيف كامل للمستندات للمراجعين. تتطلب المصلحة الاحتفاظ بالسجلات ٥ سنوات.')}>
         <Button icon={busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />} onClick={async () => { setBusy(true); await new Promise((r) => setTimeout(r, 900)); setBusy(false); toast({ tone: 'ok', text: L('Archive is being prepared — we will email you a link.', 'جارٍ تجهيز الأرشيف — سنرسل لك رابطاً.') }); }}>{L('Request archive', 'طلب الأرشيف')}</Button>
       </Card>
-      <Card title={L('Demo data', 'بيانات العرض')} subtitle={L('This workspace runs on a simulated ETA backend. Reset to restore the sample company.', 'تعمل مساحة العمل على محاكاة لخادم المصلحة. أعد الضبط لاستعادة بيانات العرض.')}>
+      {mode === 'local' && <Card title={L('Demo data', 'بيانات العرض')} subtitle={L('This workspace runs on a simulated ETA backend. Reset to restore the sample company.', 'تعمل مساحة العمل على محاكاة لخادم المصلحة. أعد الضبط لاستعادة بيانات العرض.')}>
         <Button variant="secondary" icon={<RotateCcw className="size-4" />} onClick={() => setConfirm(true)}>{L('Reset demo data', 'إعادة ضبط البيانات')}</Button>
-      </Card>
+      </Card>}
       <Card title={L('Server', 'الخادم')}><p className="text-ink-muted text-[13px] flex items-center gap-2"><Server className="size-4" />{L('Data residency: Egypt (Cairo region). Encrypted at rest, TLS 1.3 in transit.', 'إقامة البيانات: مصر. مشفرة أثناء التخزين والنقل.')}</p></Card>
       <Modal open={confirm} onClose={() => setConfirm(false)} size="sm" title={L('Reset demo data?', 'إعادة ضبط البيانات؟')}
         footer={<><Button onClick={() => setConfirm(false)}>{L('Cancel', 'إلغاء')}</Button><Button variant="danger" onClick={() => { reset(); setConfirm(false); toast({ tone: 'ok', text: L('Demo data restored.', 'تمت استعادة البيانات.') }); }}>{L('Reset', 'إعادة الضبط')}</Button></>}>

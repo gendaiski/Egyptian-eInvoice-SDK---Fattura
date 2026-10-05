@@ -25,7 +25,7 @@ function blankLine(): DocLine {
 }
 
 export function Composer() {
-  const { db, set } = useStore();
+  const { db, set, mode } = useStore();
   const actions = useActions();
   const { L, lang, money, date } = useI18n();
   const lb = useLabels();
@@ -78,7 +78,9 @@ export function Composer() {
   const foreign = doc.lines.some((l) => l.currency !== 'EGP');
   const isNote = ['C', 'D'].includes(doc.documentType);
   const customer = db.customers.find((c) => c.id === doc.customerId);
-  const signerOnline = db.signing.agent.status === 'online';
+  // A server-held test certificate is always available; on the server, documents for an offline USB signer queue until it reconnects.
+  const signerOnline = db.signing.method === 'test-certificate' || db.signing.agent.status === 'online' || mode === 'api';
+  const signerQueued = mode === 'api' && db.signing.method !== 'test-certificate' && db.signing.agent.status !== 'online';
 
   const pickCustomer = (c?: Customer) => {
     if (!c) return patch({ customerId: undefined, counterparty: { type: 'P' } });
@@ -113,7 +115,7 @@ export function Composer() {
   const future = doc.plan.kind === 'recurring' && doc.plan.startDate > today();
 
   /** Saves the document. A recurring plan also creates the schedule; if it starts later, only the schedule is saved. */
-  const persist = (submitAfter: boolean): Doc | null => {
+  const persist = async (submitAfter: boolean): Promise<Doc | null> => {
     const now = new Date().toISOString();
     const final: Doc = { ...doc, issuedAt: doc.issuedAt > now ? now : doc.issuedAt };
     if (doc.plan.kind === 'recurring') {
@@ -135,12 +137,12 @@ export function Composer() {
         return null;
       }
     }
-    actions.saveDoc(final);
+    try { await actions.saveDoc(final); } catch { return null; }
     if (!submitAfter) toast({ tone: 'ok', text: L(`Draft ${final.internalID} saved.`, `تم حفظ المسودة ${final.internalID}.`) });
     return final;
   };
 
-  const onSave = () => { if (customerMissing()) return; setBusy('save'); const d = persist(false); setBusy(''); if (d) nav(`/app/documents/${d.id}`); };
+  const onSave = async () => { if (customerMissing()) return; setBusy('save'); const d = await persist(false); setBusy(''); if (d) nav(`/app/documents/${d.id}`); };
   const customerMissing = () => {
     if (doc.plan.kind === 'recurring' && !doc.customerId) { toast({ tone: 'bad', text: L('Recurring invoices need a saved customer.', 'الفواتير المتكررة تحتاج عميلاً محفوظاً.') }); return true; }
     return false;
@@ -150,8 +152,8 @@ export function Composer() {
     if (errors.length) { toast({ tone: 'bad', text: L(`Fix ${errors.length} issue(s) before submitting.`, `أصلح ${errors.length} مشكلة قبل الإرسال.`) }); return; }
     if (customerMissing()) return;
     setBusy('submit');
-    const d = persist(true);
-    if (!d) return;
+    const d = await persist(true);
+    if (!d) { setBusy(''); return; }
     nav(`/app/documents/${d.id}`);
     await actions.submit([d.id]);
   };
@@ -354,6 +356,7 @@ export function Composer() {
 
           <div className="card p-4 space-y-3">
             {!signerOnline && <Callout tone="warn" title={L('Signer offline', 'التوقيع غير متصل')}>{L('You can save a draft; submission needs the USB token.', 'يمكنك حفظ مسودة؛ الإرسال يحتاج التوكن.')}</Callout>}
+            {signerQueued && <Callout tone="info" title={L('Signer offline', 'التوقيع غير متصل')}>{L('Submitted documents wait in the signing queue and go to ETA as soon as Fatura Signer reconnects.', 'تنتظر المستندات في قائمة التوقيع وتُرسل فور اتصال برنامج التوقيع.')}</Callout>}
             <Button variant="primary" size="lg" className="w-full" icon={<Send className="size-4" />} onClick={onSubmit} loading={busy === 'submit'} disabled={(!signerOnline && !future) || !!busy}>
               {future ? L('Schedule recurring invoice', 'جدولة الفاتورة المتكررة') : L('Sign & submit to ETA', 'توقيع وإرسال للمصلحة')}
             </Button>

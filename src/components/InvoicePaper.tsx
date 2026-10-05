@@ -7,7 +7,7 @@ import { QR } from './QR';
 import { Logo } from './brand';
 
 /** The customer-facing printout. Always light, A4 proportions, bilingual headings like Egyptian tax invoices. */
-export function InvoicePaper({ doc, company, env }: { doc: Doc; company: Company; env: 'preprod' | 'production' }) {
+export function InvoicePaper({ doc, company, env }: { doc: Doc; company: Company; env: 'simulator' | 'preprod' | 'production' }) {
   const { L, lang, money, date } = useI18n();
   const lb = useLabels();
   const { lines, totals } = computeDoc(doc);

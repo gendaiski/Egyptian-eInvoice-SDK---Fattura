@@ -76,7 +76,7 @@ export function RecurringDetail() {
           {r.status === 'active'
             ? <Button icon={<Pause className="size-4" />} onClick={() => { actions.setRecurringStatus(r.id, 'paused'); toast({ tone: 'ok', text: L('Schedule paused.', 'تم إيقاف الجدول.') }); }}>{L('Pause', 'إيقاف')}</Button>
             : <Button icon={<Play className="size-4" />} onClick={() => { actions.setRecurringStatus(r.id, 'active'); toast({ tone: 'ok', text: L('Schedule resumed.', 'تم استئناف الجدول.') }); }}>{L('Resume', 'استئناف')}</Button>}
-          <Button variant="primary" icon={<Zap className="size-4" />} onClick={() => { const nid = actions.runRecurringNow(r.id); toast({ tone: 'ok', text: L('Invoice generated as a draft for review.', 'تم إنشاء الفاتورة كمسودة للمراجعة.') }); nav(`/app/documents/${nid}`); }}>{L('Issue one now', 'إصدار واحدة الآن')}</Button>
+          <Button variant="primary" icon={<Zap className="size-4" />} onClick={async () => { const nid = await actions.runRecurringNow(r.id); if (!nid) return; toast({ tone: 'ok', text: L('Invoice generated as a draft for review.', 'تم إنشاء الفاتورة كمسودة للمراجعة.') }); nav(`/app/documents/${nid}`); }}>{L('Issue one now', 'إصدار واحدة الآن')}</Button>
         </>} />
       <div className="grid gap-5 lg:grid-cols-3 items-start">
         <div className="lg:col-span-2 space-y-5">

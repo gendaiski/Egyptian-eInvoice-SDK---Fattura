@@ -2,7 +2,7 @@ import { Bell, ChevronDown, Command, Languages, LogOut, Menu, Moon, Search, Shie
 import { Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '@/i18n';
-import { useActions, useStore } from '@/store/store';
+import { useActions, useAuth, useStore } from '@/store/store';
 import { Logo } from '@/components/brand';
 import { Avatar, Badge, IconButton, cx } from '@/components/ui';
 
@@ -104,11 +104,14 @@ function Notifications() {
 }
 
 function UserMenu({ admin }: { admin?: boolean }) {
-  const { db, set } = useStore();
+  const { db, mode } = useStore();
+  const auth = useAuth();
   const { L } = useI18n();
   const [open, setOpen] = useState(false);
   const nav = useNavigate();
-  const user = admin ? db.admin.users[0] : db.session.user;
+  const user = admin && mode === 'local' ? db.admin.users[0] : db.session.user;
+  // On the server, the switch only appears when the account has access to the other side.
+  const canSwitch = mode === 'local' || (admin ? !!db.session.tenantId : !!db.session.staffRole);
   return (
     <div className="relative">
       <button className="flex items-center gap-2 h-9 ps-1 pe-2 rounded hover:bg-sunken" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu">
@@ -121,11 +124,11 @@ function UserMenu({ admin }: { admin?: boolean }) {
           <div className="font-medium text-ink">{user.name}</div>
           <div className="text-[12.5px] text-ink-subtle truncate">{user.email}</div>
         </div>
-        <Link to={admin ? '/app' : '/admin'} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-3.5 h-9 text-[13.5px] hover:bg-sunken">
+        {canSwitch && <Link to={admin ? '/app' : '/admin'} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-3.5 h-9 text-[13.5px] hover:bg-sunken">
           {admin ? <ArrowLeftRight className="size-4 text-ink-muted" /> : <Shield className="size-4 text-ink-muted" />}
           {admin ? L('Open taxpayer workspace', 'فتح مساحة الممول') : L('Fatura admin panel', 'لوحة إدارة فاتورة')}
-        </Link>
-        <button onClick={() => { set((x) => { x.session.signedIn = false; }); nav('/signin'); }} className="w-full flex items-center gap-2.5 px-3.5 h-9 text-[13.5px] hover:bg-sunken">
+        </Link>}
+        <button onClick={async () => { setOpen(false); await auth.logout(); nav('/signin'); }} className="w-full flex items-center gap-2.5 px-3.5 h-9 text-[13.5px] hover:bg-sunken">
           <LogOut className="size-4 text-ink-muted" />{L('Sign out', 'تسجيل الخروج')}
         </button>
       </Popover>

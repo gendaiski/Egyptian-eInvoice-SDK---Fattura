@@ -5,7 +5,9 @@ import { bi } from '@/i18n';
 import { uid } from '@/store/model';
 import { priceFor, type Billing } from '@/billing/plans';
 import { useI18n } from '@/i18n';
-import { useStore } from '@/store/store';
+import { useAuth, useStore } from '@/store/store';
+import { ApiError } from '@/lib/api';
+import { SHOW_DEMO_LOGINS } from '@/env';
 import { Logo } from '@/components/brand';
 import { Button, Callout, Field, Input } from '@/components/ui';
 import { Prefs } from '@/layouts/Shell';
@@ -32,19 +34,32 @@ function AuthFrame({ children }: { children: ReactNode }) {
 }
 
 export function SignIn() {
-  const { set } = useStore();
+  const auth = useAuth();
   const { L } = useI18n();
   const nav = useNavigate();
-  const [email, setEmail] = useState('yasmine@lawtechlabs.eg');
+  const api = auth.mode === 'api';
+  const [email, setEmail] = useState(api ? '' : 'yasmine@lawtechlabs.eg');
   const [pw, setPw] = useState('');
   const [step, setStep] = useState<'creds' | 'otp'>('creds');
   const [otp, setOtp] = useState('');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    setError('');
+    if (api) {
+      setBusy(true);
+      try {
+        const db = await auth.login(email, pw);
+        const s = db.session;
+        nav(s.staffRole && !s.tenantId ? '/admin' : !s.onboarded ? '/onboarding' : '/app');
+      } catch (err) { setError(err instanceof ApiError ? err.message : L('Sign-in failed.', 'تعذر تسجيل الدخول.')); }
+      finally { setBusy(false); }
+      return;
+    }
     setBusy(true); await new Promise((r) => setTimeout(r, 500)); setBusy(false);
     if (step === 'creds') { setStep('otp'); return; }
-    set((x) => { x.session.signedIn = true; x.session.onboarded = true; });
+    await auth.login(email, pw);
     nav('/app');
   };
   return (
@@ -55,21 +70,34 @@ export function SignIn() {
         {step === 'creds' ? (
           <>
             <Field label={L('Work email', 'البريد')}>{(id) => <Input id={id} type="email" dir="ltr" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />}</Field>
-            <Field label={L('Password', 'كلمة المرور')}>{(id) => <Input id={id} type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder={L('Any password works in the demo', 'أي كلمة مرور تعمل في العرض')} />}</Field>
+            <Field label={L('Password', 'كلمة المرور')}>{(id) => <Input id={id} type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder={api ? undefined : L('Any password works in the demo', 'أي كلمة مرور تعمل في العرض')} required={api} />}</Field>
           </>
         ) : (
           <Field label={L('Verification code', 'رمز التحقق')} hint={L('Demo: any 6 digits.', 'العرض: أي ٦ أرقام.')}>{(id) => <Input id={id} dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} className="tracking-[.4em] text-center text-[18px] font-mono" autoFocus />}</Field>
         )}
+        {error && <Callout tone="bad">{error}</Callout>}
         <Button type="submit" variant="primary" size="lg" className="w-full" loading={busy} disabled={step === 'otp' && otp.length !== 6}>{step === 'creds' ? L('Continue', 'متابعة') : L('Verify and sign in', 'تحقق وادخل')}</Button>
       </form>
       <p className="mt-6 text-[13.5px] text-ink-muted">{L('New to Fatura?', 'جديد على فاتورة؟')} <Link to="/signup" className="link font-medium">{L('Create an account', 'أنشئ حساباً')}</Link></p>
+      {api && SHOW_DEMO_LOGINS && (
+        <div className="mt-6"><Callout tone="info" title={L('Test workspace logins', 'حسابات الاختبار')}>
+          <div className="space-y-1.5 mt-1" dir="ltr">
+            {[['demo@fatura.eg', 'fatura-demo-2026', L('Tenant owner', 'مالك الحساب')], ['admin@fatura.eg', 'fatura-admin-2026', L('Platform admin', 'مدير المنصة')]].map(([e, p, r]) => (
+              <button key={e} type="button" className="block text-start w-full hover:underline" onClick={() => { setEmail(e); setPw(p); }}><span className="font-mono text-[12.5px]">{e} / {p}</span> <span className="text-ink-subtle text-[12px]">· {r}</span></button>
+            ))}
+          </div>
+        </Callout></div>
+      )}
       <div className="mt-8"><Callout tone="info" icon={<ShieldCheck className="size-[18px]" />}>{L('Fatura staff use the same sign-in, then open the admin panel from the user menu.', 'يستخدم موظفو فاتورة نفس الدخول ثم يفتحون لوحة الإدارة من قائمة المستخدم.')}</Callout></div>
     </AuthFrame>
   );
 }
 
 export function SignUp() {
-  const { db, set } = useStore();
+  const { db } = useStore();
+  const auth = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const { L, lang, money } = useI18n();
   const nav = useNavigate();
   const [params] = useSearchParams();
@@ -91,15 +119,18 @@ export function SignUp() {
         </div>
         <Link to="/pricing" className="text-[13px] link shrink-0">{L('Change', 'تغيير')}</Link>
       </div>
-      <form className="mt-6 space-y-4" onSubmit={(e) => {
+      <form className="mt-6 space-y-4" onSubmit={async (e) => {
         e.preventDefault(); if (!ok) return;
         const tid = uid('t');
-        set((x) => {
+        setBusy(true); setError('');
+        try { await auth.signup({ name: f.name, company: f.company, email: f.email, password: f.pw, plan: plan.id, billing }, (x) => {
           x.session = { signedIn: true, onboarded: false, user: { name: f.name, email: f.email }, tenantId: tid };
           x.company.name = f.company;
           x.admin.tenants.unshift({ id: tid, name: f.company, rin: '—', owner: f.email, governorate: 'Cairo', planId: plan.id, model: billing === 'monthly' || billing === 'yearly' ? 'recurring' : billing, cycle: billing === 'monthly' || billing === 'yearly' ? billing : undefined, status: 'trial', env: 'preprod', docsThisMonth: 0, invalidRate: 0, signer: 'offline', mrr: 0, createdAt: new Date().toISOString(), installmentsPaid: billing === 'installments' ? 0 : undefined });
           x.admin.leads.unshift({ id: uid('l'), at: new Date().toISOString(), name: f.name, email: f.email, company: f.company, topic: 'sales', message: `Started a trial on ${plan.name} (${billing}).`, source: 'signup', planId: plan.id, billing, status: 'new' });
-        });
+        }); }
+        catch (err) { setError(err instanceof ApiError ? err.message : L('Could not create the account.', 'تعذر إنشاء الحساب.')); setBusy(false); return; }
+        setBusy(false);
         nav('/onboarding');
       }}>
         <Field label={L('Your name', 'اسمك')}>{(id) => <Input id={id} autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />}</Field>
@@ -107,7 +138,8 @@ export function SignUp() {
         <Field label={L('Work email', 'البريد')}>{(id) => <Input id={id} type="email" dir="ltr" autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />}</Field>
         <Field label={L('Password', 'كلمة المرور')} hint={L('At least 8 characters.', '٨ أحرف على الأقل.')}>{(id) => <Input id={id} type="password" autoComplete="new-password" value={f.pw} onChange={(e) => setF({ ...f, pw: e.target.value })} />}</Field>
         <label className="flex items-start gap-2.5 text-[13px] text-ink-muted"><input type="checkbox" className="mt-0.5 size-4 accent-[rgb(var(--accent))]" checked={agree} onChange={(e) => setAgree(e.target.checked)} />{L('I agree to the terms and the data processing agreement.', 'أوافق على الشروط واتفاقية معالجة البيانات.')}</label>
-        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={!ok}>{L('Create account', 'إنشاء الحساب')}</Button>
+        {error && <Callout tone="bad">{error}</Callout>}
+        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={!ok} loading={busy}>{L('Create account', 'إنشاء الحساب')}</Button>
       </form>
       <p className="mt-6 text-[13.5px] text-ink-muted">{L('Already have an account?', 'لديك حساب؟')} <Link to="/signin" className="link font-medium">{L('Sign in', 'تسجيل الدخول')}</Link></p>
     </AuthFrame>

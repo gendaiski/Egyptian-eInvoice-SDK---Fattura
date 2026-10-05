@@ -256,6 +256,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setItems((x) => [...x, { ...t, id }]);
     setTimeout(() => setItems((x) => x.filter((y) => y.id !== id)), 4800);
   }, []);
+  // Server errors reported from outside React (see lib/api reportApiError).
+  useEffect(() => {
+    const on = (e: Event) => push({ tone: 'bad', text: String((e as CustomEvent).detail) });
+    window.addEventListener('fatura:error', on);
+    return () => window.removeEventListener('fatura:error', on);
+  }, [push]);
   return (
     <ToastCtx.Provider value={push}>
       {children}

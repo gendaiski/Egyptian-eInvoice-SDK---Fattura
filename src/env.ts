@@ -20,3 +20,6 @@ export function initialPathFromHash(): string {
  */
 export const DATA_MODE: 'local' | 'api' = import.meta.env.VITE_DATA === 'api' ? 'api' : 'local';
 export const API_BASE: string = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+
+/** Show the seeded test-workspace logins on the sign-in page (API mode). Turn off for real deployments. */
+export const SHOW_DEMO_LOGINS = import.meta.env.VITE_SHOW_DEMO_LOGINS !== 'false';

@@ -1,10 +1,11 @@
 import { Activity, BookOpen, Building2, CreditCard, Gauge, Globe, Inbox, Layers, ScrollText, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useStore } from '@/store/store';
+import { Navigate } from 'react-router-dom';
 import { Shell, type NavGroup } from './Shell';
 
 export function AdminLayout() {
-  const { db } = useStore();
+  const { db, mode } = useStore();
   const { L } = useI18n();
   const pastDue = db.admin.tenants.filter((t) => t.status === 'past_due').length;
   const groups: NavGroup[] = [
@@ -39,5 +40,7 @@ export function AdminLayout() {
     ...groups.flatMap((g) => g.items).map((i) => ({ label: i.label, to: i.to, group: L('Page', 'صفحة') })),
     ...db.admin.tenants.map((t) => ({ label: t.name, to: `/admin/tenants/${t.id}`, group: L('Tenant', 'شركة'), keywords: `${t.rin} ${t.owner}` })),
   ];
+  if (mode === 'api' && !db.session.signedIn) return <Navigate to="/signin" replace />;
+  if (mode === 'api' && !db.session.staffRole) return <Navigate to="/app" replace />;
   return <Shell admin groups={groups} palette={palette} />;
 }

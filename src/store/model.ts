@@ -12,11 +12,11 @@ export interface Company {
   branches: Branch[]; iban: string; bankName: string;
 }
 export interface Integration {
-  env: 'preprod' | 'production'; clientId: string; secretSet: boolean;
+  env: 'simulator' | 'preprod' | 'production'; clientId: string; secretSet: boolean;
   status: 'connected' | 'error' | 'not_configured'; lastTokenAt?: string; posSerial?: string;
 }
 export interface Signing {
-  method: 'usb-token' | 'hsm' | 'cloud';
+  method: 'usb-token' | 'hsm' | 'cloud' | 'test-certificate';
   agent: { status: 'online' | 'offline'; version: string; host: string; lastSeen: string };
   certificate: { subject: string; issuer: string; serial: string; expires: string };
 }
@@ -110,7 +110,11 @@ export interface ApiDay { date: string; submitted: number; valid: number; invali
 
 export interface DB {
   version: number;
-  session: { signedIn: boolean; onboarded: boolean; user: { name: string; email: string }; tenantId?: string };
+  session: {
+    signedIn: boolean; onboarded: boolean; user: { name: string; email: string }; tenantId?: string;
+    /** API mode: platform staff role (admin panel) and tenant membership role. */
+    staffRole?: string | null; role?: string | null;
+  };
   company: Company; integration: Integration; signing: Signing;
   settings: { numbering: Record<'I' | 'C' | 'D' | 'EI', { pattern: string; next: number }>; personIdThreshold: number; defaultTerms: PaymentTerms; autoEmail: boolean };
   customers: Customer[]; items: Item[]; docs: Doc[]; recurring: Recurring[]; submissions: Submission[];
