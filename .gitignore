@@ -9,3 +9,4 @@ dist-preview
 dist-server
 signer-agent/dist
 .data
+.vercel
