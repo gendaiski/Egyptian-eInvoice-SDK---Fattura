@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fatura design tokens. Space-separated RGB so Tailwind alpha modifiers work.
+   One accent (Nile green), warm paper neutrals, semantic status colours. */
+/* The invoice paper is always printed light, whatever the app theme. */
+:root, .paper-light {
+  --canvas: 246 244 239;
+  --surface: 255 255 255;
+  --sunken: 239 236 229;
+  --line: 224 219 208;
+  --ink: 24 28 27;
+  --ink-muted: 84 90 88;
+  --ink-subtle: 128 133 130;
+  --accent: 13 92 85;
+  --accent-strong: 8 70 64;
+  --accent-soft: 220 236 232;
+  --accent-on: 255 255 255;
+  --ok: 22 120 72;
+  --ok-soft: 222 241 229;
+  --warn: 160 98 10;
+  --warn-soft: 250 238 214;
+  --bad: 180 40 40;
+  --bad-soft: 250 226 224;
+  --info: 40 88 160;
+  --info-soft: 225 234 248;
+  --shadow: 40 34 20;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --canvas: 15 18 18;
+  --surface: 22 26 26;
+  --sunken: 11 13 13;
+  --line: 44 50 49;
+  --ink: 236 234 228;
+  --ink-muted: 168 172 168;
+  --ink-subtle: 124 129 126;
+  --accent: 84 196 178;
+  --accent-strong: 120 214 198;
+  --accent-soft: 20 52 48;
+  --accent-on: 8 26 24;
+  --ok: 88 196 132;
+  --ok-soft: 20 48 33;
+  --warn: 232 178 86;
+  --warn-soft: 56 42 16;
+  --bad: 240 120 112;
+  --bad-soft: 62 24 22;
+  --info: 128 170 236;
+  --info-soft: 22 36 60;
+  --shadow: 0 0 0;
+  color-scheme: dark;
+}
+
+@layer base {
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  body { @apply bg-canvas text-ink font-sans text-[14px] leading-[1.5]; }
+  :lang(ar) body { font-family: 'IBM Plex Sans Arabic', 'Geist', system-ui, sans-serif; }
+  h1, h2, h3 { letter-spacing: -0.015em; }
+  :lang(ar) h1, :lang(ar) h2, :lang(ar) h3 { letter-spacing: 0; }
+  ::selection { background: rgb(var(--accent) / .18); }
+  :focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 2px; border-radius: 6px; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  /* Grid items default to min-width:auto, which lets wide tables push columns past the viewport. */
+  .grid > * { min-width: 0; }
+}
+
+@layer components {
+  .card { @apply bg-surface border border-line rounded-lg shadow-card; }
+  .label { @apply block text-[12.5px] font-medium text-ink-muted mb-1.5; }
+  .input {
+    @apply w-full h-9 px-3 rounded bg-surface border border-line text-ink placeholder:text-ink-subtle
+           transition-colors hover:border-ink-subtle/60 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20
+           disabled:bg-sunken disabled:text-ink-subtle;
+  }
+  .input[aria-invalid='true'] { @apply border-bad focus:ring-bad/20; }
+  .kbd { @apply inline-flex items-center px-1.5 h-5 rounded border border-line bg-sunken text-[11px] font-mono text-ink-muted; }
+  .link { @apply text-accent hover:text-accent-strong underline-offset-2 hover:underline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+@keyframes fade-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+.animate-in { animation: fade-rise .18s ease-out both; }
+.skeleton {
+  background: linear-gradient(90deg, rgb(var(--sunken)) 0, rgb(var(--line) / .7) 50%, rgb(var(--sunken)) 100%);
+  background-size: 800px 100%; animation: shimmer 1.4s linear infinite; border-radius: 6px;
+}
+
+/* Print: only the invoice paper. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff !important; }
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; inset: 0 auto auto 0; width: 100%; box-shadow: none !important; border: 0 !important; }
+}
