@@ -8,8 +8,13 @@ import type {
  * and the SPA talks to Fatura's own API, which proxies these calls per tenant.
  *
  * Environments
- *   Pre-production  id: https://id.preprod.eta.gov.eg   api: https://api.preprod.invoicing.eta.gov.eg
- *   Production      id: https://id.eta.gov.eg           api: https://api.invoicing.eta.gov.eg
+ *   SIT (integrators) id: https://id.sit.eta.gov.eg      api: https://api.sit.invoicing.eta.gov.eg
+ *   Pre-production    id: https://id.preprod.eta.gov.eg  api: https://api.preprod.invoicing.eta.gov.eg
+ *   Production        id: https://id.eta.gov.eg          api: https://api.invoicing.eta.gov.eg
+ *
+ * Request bodies must be UTF-8 JSON with non-ASCII characters left unescaped (no \uXXXX):
+ * ETA recomputes the hash from the bytes it receives, so an escaped Arabic description
+ * produces a signature mismatch.
  */
 export interface EtaClient {
   /** POST {id}/connect/token — grant_type=client_credentials, scope=InvoicingAPI. Token lifetime ~1h. */
@@ -54,6 +59,12 @@ export interface EtaClient {
   /** POST /api/v1.0/codetypes/requests/codes — register internal (EGS) item codes for approval. */
   createEgsCodeUsage(items: { codeType: 'EGS'; parentCode: string; itemCode: string; codeName: string; codeNameAr: string; activeFrom: string; description: string }[]): Promise<{ passedItems: string[]; failedItems: { itemCode: string; errors: string[] }[] }>;
 
+  /** GET /api/v1.0/codetypes/{codeType}/codes/{itemCode} — details of a published code (GS1 or EGS). */
+  getCodeDetails(codeType: 'EGS' | 'GS1', itemCode: string): Promise<{ itemCode: string; codeName: string; codeNameAr: string; active: boolean; parentItemCode?: string }>;
+
+  /** PUT /api/v1.0/codetypes/requests/codeusages — reuse a code another taxpayer already registered. */
+  requestCodeReuse(items: { codetype: 'EGS' | 'GS1'; itemCode: string; comment: string }[]): Promise<void>;
+
   /** GET /api/v1.0/codetypes/requests/my — status of code usage requests. */
   getMyCodeUsageRequests(): Promise<{ itemCode: string; status: CodeRequestStatus }[]>;
 
@@ -75,6 +86,8 @@ export const ENDPOINTS = [
   { op: 'Request document package', method: 'POST', path: '/api/v1.0/documentPackages/requests', host: 'api' },
   { op: 'Create EGS code usage', method: 'POST', path: '/api/v1.0/codetypes/requests/codes', host: 'api' },
   { op: 'My code usage requests', method: 'GET', path: '/api/v1.0/codetypes/requests/my', host: 'api' },
+  { op: 'Get code details', method: 'GET', path: '/api/v1.0/codetypes/{codeType}/codes/{itemCode}', host: 'api' },
+  { op: 'Request code reuse', method: 'PUT', path: '/api/v1.0/codetypes/requests/codeusages', host: 'api' },
   { op: 'Taxpayer notifications', method: 'GET', path: '/api/v1/notifications/taxpayer', host: 'api' },
   { op: 'Submit receipts (POS)', method: 'POST', path: '/api/v1/receiptsubmissions', host: 'api' },
 ] as const;

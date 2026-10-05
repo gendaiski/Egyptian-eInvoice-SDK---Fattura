@@ -5,9 +5,9 @@ import { serializeForSigning } from '@/eta/serialize';
 import { docTotal, formatNumber, toEtaDocument, uid, type DB, type Doc, type PaymentRecord } from './model';
 import { seed } from './seed';
 
-const KEY = 'fatura.db.v1';
+const KEY = 'fatura.db.v2';
 const load = (): DB => {
-  try { const raw = localStorage.getItem(KEY); if (raw) { const db = JSON.parse(raw) as DB; if (db.version === 1) return db; } } catch { /* fall through */ }
+  try { const raw = localStorage.getItem(KEY); if (raw) { const db = JSON.parse(raw) as DB; if (db.version === 2) return db; } } catch { /* fall through */ }
   return seed();
 };
 

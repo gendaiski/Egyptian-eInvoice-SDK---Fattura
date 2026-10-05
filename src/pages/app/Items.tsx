@@ -1,6 +1,7 @@
 import { Boxes, CheckCircle2, Clock, Plus, Search, Send, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import { CURRENCIES, UNIT_TYPES, taxType } from '@/eta/codes';
+import { CURRENCIES, taxType } from '@/eta/codes';
+import { UnitOptions } from './shared';
 import type { CodeRequestStatus } from '@/eta/types';
 import { bi, useI18n } from '@/i18n';
 import { uid, type Item } from '@/store/model';
@@ -90,7 +91,7 @@ function NewItem({ onClose, onCreate }: { onClose(): void; onCreate(i: Item): vo
             <Field label={L('GTIN barcode', 'الباركود')}>{(fid) => <Input id={fid} dir="ltr" inputMode="numeric" value={it.itemCode} onChange={(e) => setIt((x) => ({ ...x, itemCode: e.target.value.trim(), internalCode: e.target.value.trim() }))} placeholder="6221234500017" />}</Field>
           )}
           <Field label={L('GPC brick (parent code)', 'تصنيف GPC')}>{(fid) => <Input id={fid} dir="ltr" value={it.gpcCode} onChange={(e) => setIt((x) => ({ ...x, gpcCode: e.target.value }))} />}</Field>
-          <Field label={L('Unit', 'الوحدة')}>{(fid) => <Select id={fid} value={it.unitType} onChange={(e) => setIt((x) => ({ ...x, unitType: e.target.value }))}>{UNIT_TYPES.map((u) => <option key={u.code} value={u.code}>{u.code} · {bi(lang, u)}</option>)}</Select>}</Field>
+          <Field label={L('Unit', 'الوحدة')}>{(fid) => <Select id={fid} value={it.unitType} onChange={(e) => setIt((x) => ({ ...x, unitType: e.target.value }))}><UnitOptions /></Select>}</Field>
           <div className="grid grid-cols-[minmax(0,1fr)_100px] gap-3">
             <Field label={L('Default price', 'السعر الافتراضي')}>{(fid) => <Input id={fid} type="number" min={0} value={it.price} onChange={(e) => setIt((x) => ({ ...x, price: Number(e.target.value) }))} />}</Field>
             <Field label={L('Currency', 'العملة')}>{(fid) => <Select id={fid} value={it.currency} onChange={(e) => setIt((x) => ({ ...x, currency: e.target.value }))}>{CURRENCIES.map((c) => <option key={c}>{c}</option>)}</Select>}</Field>

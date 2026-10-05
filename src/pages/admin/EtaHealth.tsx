@@ -56,7 +56,7 @@ export function EtaHealth() {
         <Card title={L('Endpoint status', 'حالة الواجهات')} pad={false}>
           <Table>
             <thead><tr><Th>{L('Operation', 'العملية')}</Th><Th>{L('Status', 'الحالة')}</Th></tr></thead>
-            <tbody>{ENDPOINTS.map((e, i) => <tr key={e.op}><Td><div>{e.op}</div><Mono className="text-ink-subtle text-[11.5px]">{e.method} {e.path}</Mono></Td><Td>{i === 12 ? <Badge tone="warn">{L('Degraded', 'متدهورة')}</Badge> : <Badge tone="ok">{L('Operational', 'تعمل')}</Badge>}</Td></tr>)}</tbody>
+            <tbody>{ENDPOINTS.map((e) => <tr key={e.op}><Td><div>{e.op}</div><Mono className="text-ink-subtle text-[11.5px]">{e.method} {e.path}</Mono></Td><Td>{e.op === 'Taxpayer notifications' ? <Badge tone="warn">{L('Degraded', 'متدهورة')}</Badge> : <Badge tone="ok">{L('Operational', 'تعمل')}</Badge>}</Td></tr>)}</tbody>
           </Table>
         </Card>
       </div>

@@ -1,8 +1,15 @@
 /**
- * ETA code tables. In production these are synced from the SDK code lists
- * (https://sdk.invoicing.eta.gov.eg/codes/) by the admin "Reference data" job;
- * this file is the bundled seed so the composer works offline.
+ * ETA code tables, derived from the official SDK code lists bundled in ./data
+ * (see ./data/README.md for source and licence). In production the admin
+ * "Reference data" job re-syncs these from https://sdk.invoicing.eta.gov.eg/codes/.
  */
+import activityCodes from './data/ActivityCodes.json';
+import countryCodes from './data/CountryCodes.json';
+import currencyCodes from './data/CurrencyCodes.json';
+import nonTaxableTaxTypes from './data/NonTaxableTaxTypes.json';
+import taxSubtypes from './data/TaxSubtypes.json';
+import taxTypes from './data/TaxTypes.json';
+import unitTypes from './data/UnitTypes.json';
 
 export type TaxKind =
   | 'vat' // T1
@@ -14,113 +21,94 @@ export type TaxKind =
 
 export interface TaxSubType { code: string; en: string; ar: string; fixed?: boolean; defaultRate?: number }
 export interface TaxType { code: string; en: string; ar: string; kind: TaxKind; subTypes: TaxSubType[] }
+export interface Coded { code: string; en: string; ar: string }
 
-const fee = (code: string, en: string, ar: string, kind: TaxKind, rateSub: string, amountSub: string): TaxType => ({
-  code, en, ar, kind,
-  subTypes: [
-    { code: rateSub, en: `${en} (percentage)`, ar: `${ar} (نسبة)` },
-    { code: amountSub, en: `${en} (amount)`, ar: `${ar} (مبلغ)`, fixed: true },
-  ],
-});
-
-export const TAX_TYPES: TaxType[] = [
-  {
-    code: 'T1', en: 'Value added tax', ar: 'ضريبة القيمة المضافة', kind: 'vat',
-    subTypes: [
-      { code: 'V009', en: 'General item sales', ar: 'مبيعات السلع العامة', defaultRate: 14 },
-      { code: 'V001', en: 'Export', ar: 'تصدير', defaultRate: 0 },
-      { code: 'V002', en: 'Export to free and other areas', ar: 'تصدير للمناطق الحرة وأخرى', defaultRate: 0 },
-      { code: 'V003', en: 'Exempted good or service', ar: 'سلعة أو خدمة معفاة', defaultRate: 0 },
-      { code: 'V004', en: 'Non-taxable good or service', ar: 'سلعة أو خدمة غير خاضعة', defaultRate: 0 },
-      { code: 'V005', en: 'Exemptions for diplomats, consulates and embassies', ar: 'إعفاءات الدبلوماسيين والقنصليات والسفارات', defaultRate: 0 },
-      { code: 'V006', en: 'Defence and national security exemptions', ar: 'إعفاءات الدفاع والأمن القومي', defaultRate: 0 },
-      { code: 'V007', en: 'Agreements exemptions', ar: 'إعفاءات الاتفاقيات', defaultRate: 0 },
-      { code: 'V008', en: 'Special exemptions and other reasons', ar: 'إعفاءات خاصة وأسباب أخرى', defaultRate: 0 },
-      { code: 'V010', en: 'Other rates', ar: 'نسب ضريبة أخرى', defaultRate: 5 },
-    ],
-  },
-  { code: 'T2', en: 'Table tax (percentage)', ar: 'ضريبة الجدول (نسبية)', kind: 'table-rate', subTypes: [{ code: 'Tbl01', en: 'Table tax (percentage)', ar: 'ضريبة الجدول (نسبية)' }] },
-  { code: 'T3', en: 'Table tax (fixed amount)', ar: 'ضريبة الجدول (قطعية)', kind: 'table-fixed', subTypes: [{ code: 'Tbl02', en: 'Table tax (fixed amount)', ar: 'ضريبة الجدول (قطعية)', fixed: true }] },
-  {
-    code: 'T4', en: 'Withholding tax (WHT)', ar: 'الخصم تحت حساب الضريبة', kind: 'withholding',
-    subTypes: [
-      { code: 'W001', en: 'Contracting', ar: 'المقاولات', defaultRate: 1 },
-      { code: 'W002', en: 'Supplies', ar: 'التوريدات', defaultRate: 1 },
-      { code: 'W003', en: 'Purchases', ar: 'المشتريات', defaultRate: 1 },
-      { code: 'W004', en: 'Services', ar: 'الخدمات', defaultRate: 3 },
-      { code: 'W005', en: 'Car transportation by cooperative societies', ar: 'نقل السيارات بالجمعيات التعاونية', defaultRate: 1 },
-      { code: 'W006', en: 'Commission agency & brokerage', ar: 'الوكالة بالعمولة والسمسرة', defaultRate: 5 },
-      { code: 'W010', en: 'Professional fees', ar: 'أتعاب مهنية', defaultRate: 5 },
-      { code: 'W013', en: 'Royalties', ar: 'الإتاوات', defaultRate: 5 },
-      { code: 'W014', en: 'Customs clearance', ar: 'التخليص الجمركي', defaultRate: 3 },
-      { code: 'W016', en: 'Advance payments', ar: 'دفعات مقدمة', defaultRate: 1 },
-    ],
-  },
-  fee('T5', 'Stamping tax', 'ضريبة الدمغة', 'taxable-fee', 'ST01', 'ST02'),
-  fee('T7', 'Entertainment tax', 'ضريبة الملاهي', 'taxable-fee', 'Ent01', 'Ent02'),
-  fee('T8', 'Resource development fee', 'رسم تنمية الموارد', 'taxable-fee', 'RD01', 'RD02'),
-  fee('T9', 'Service charges', 'رسم خدمة', 'taxable-fee', 'SC01', 'SC02'),
-  fee('T10', 'Municipality fees', 'رسم المحليات', 'taxable-fee', 'Mn01', 'Mn02'),
-  fee('T11', 'Medical insurance fee', 'رسم التأمين الصحي', 'taxable-fee', 'MI01', 'MI02'),
-  fee('T12', 'Other fees', 'رسوم أخرى', 'taxable-fee', 'OF01', 'OF02'),
-  fee('T13', 'Stamping tax — non-taxable', 'ضريبة الدمغة (غير خاضعة)', 'non-taxable-fee', 'ST03', 'ST04'),
-  fee('T17', 'Service charges — non-taxable', 'رسم خدمة (غير خاضع)', 'non-taxable-fee', 'SC03', 'SC04'),
-  fee('T20', 'Other fees — non-taxable', 'رسوم أخرى (غير خاضعة)', 'non-taxable-fee', 'OF03', 'OF04'),
+/** Display fixes for typos in the published tables. Codes are never changed. */
+const TIDY: [RegExp, string][] = [
+  [/Purachases/, 'Purchases'], [/Sumspaid/, 'Sums paid'], [/Commissionagency/, 'Commission agency'],
+  [/Discounts&/, 'Discounts &'], [/Alldiscounts/, 'All discounts'], [/Exemptios/, 'Exemptions'], [/^advance/, 'Advance'],
+  [/المبالغالتي/, 'المبالغ التي'], [/الوكالةبالعمولة/, 'الوكالة بالعمولة'], [/الخصوماتوالمنح/, 'الخصومات والمنح'],
+  [/جميعالخصومات/, 'جميع الخصومات'], [/\s+/g, ' '],
 ];
+const tidy = (s: string) => TIDY.reduce((acc, [re, to]) => acc.replace(re, to), s).trim();
+
+/** T9 and T17 are published as "Table tax (percentage)" in English but are service charges (رسم خدمة, SC01–SC04). */
+const TYPE_NAME_OVERRIDES: Record<string, { en: string }> = { T9: { en: 'Service charges' }, T17: { en: 'Service charges' } };
+
+/** Common rates to pre-fill; the user can always change them on the line. */
+const DEFAULT_RATES: Record<string, number> = {
+  V001: 0, V002: 0, V003: 0, V004: 0, V005: 0, V006: 0, V007: 0, V008: 0, V009: 14, V010: 5,
+  W001: 1, W002: 1, W003: 1, W004: 3, W005: 1, W006: 5, W010: 5, W011: 5, W013: 5, W014: 3, W015: 0, W016: 1,
+};
+
+/** Display order of subtypes within VAT: the everyday one first. */
+const SUBTYPE_FIRST = ['V009'];
+
+const kindOf = (code: string): TaxKind => {
+  const n = Number(code.slice(1));
+  if (n === 1) return 'vat';
+  if (n === 2) return 'table-rate';
+  if (n === 3) return 'table-fixed';
+  if (n === 4) return 'withholding';
+  return n <= 12 ? 'taxable-fee' : 'non-taxable-fee';
+};
+const FIXED_TYPES = new Set(['T3', 'T6', 'T14']);
+
+export const TAX_TYPES: TaxType[] = [...taxTypes, ...nonTaxableTaxTypes].map((t) => ({
+  code: t.Code,
+  en: TYPE_NAME_OVERRIDES[t.Code]?.en ?? tidy(t.Desc_en),
+  ar: tidy(t.Desc_ar),
+  kind: kindOf(t.Code),
+  subTypes: taxSubtypes
+    .filter((s) => s.TaxtypeReference === t.Code)
+    .sort((a, b) => Number(SUBTYPE_FIRST.includes(b.Code)) - Number(SUBTYPE_FIRST.includes(a.Code)))
+    .map((s) => ({
+      code: s.Code,
+      en: tidy(s.Desc_en),
+      ar: tidy(s.Desc_ar),
+      fixed: FIXED_TYPES.has(t.Code) || /\(amount\)|fixed amount/i.test(s.Desc_en) || undefined,
+      defaultRate: DEFAULT_RATES[s.Code],
+    })),
+}));
 
 export const taxType = (code: string) => TAX_TYPES.find((t) => t.code === code);
 export const taxKind = (code: string): TaxKind | undefined => taxType(code)?.kind;
+export const taxSubType = (type: string, sub: string) => taxType(type)?.subTypes.find((s) => s.code === sub);
 
-export const UNIT_TYPES = [
-  { code: 'EA', en: 'Each', ar: 'وحدة' },
-  { code: 'PCE', en: 'Piece', ar: 'قطعة' },
-  { code: 'KGM', en: 'Kilogram', ar: 'كيلوجرام' },
-  { code: 'GRM', en: 'Gram', ar: 'جرام' },
-  { code: 'TNE', en: 'Tonne', ar: 'طن' },
-  { code: 'LTR', en: 'Litre', ar: 'لتر' },
-  { code: 'MTR', en: 'Metre', ar: 'متر' },
-  { code: 'MTK', en: 'Square metre', ar: 'متر مربع' },
-  { code: 'MTQ', en: 'Cubic metre', ar: 'متر مكعب' },
-  { code: 'BX', en: 'Box', ar: 'صندوق' },
-  { code: 'SET', en: 'Set', ar: 'طقم' },
-  { code: 'HUR', en: 'Hour', ar: 'ساعة' },
-  { code: 'DAY', en: 'Day', ar: 'يوم' },
-  { code: 'MON', en: 'Month', ar: 'شهر' },
-  { code: 'ANN', en: 'Year', ar: 'سنة' },
-];
+/** Arabic names for the units people actually use; the published table leaves most of them blank. */
+const UNIT_AR: Record<string, string> = {
+  EA: 'وحدة', C62: 'وحدة نشاط', KGM: 'كيلوجرام', GRM: 'جرام', TNE: 'طن', LTR: 'لتر', M: 'متر', MTK: 'متر مربع', MTQ: 'متر مكعب',
+  CT: 'كرتونة', PK: 'عبوة', HUR: 'ساعة', DAY: 'يوم', WEE: 'أسبوع', MON: 'شهر', ANN: 'سنة', MIN: 'دقيقة',
+};
+const UNIT_EN: Record<string, string> = { EA: 'Each' };
+const unitLabel = (s: string) => s.replace(/\s*\(\s*([^)]*?)\s*\)\s*$/, (_, abbr: string) => ` (${abbr})`).trim();
 
-export const ACTIVITY_CODES = [
-  { code: '6201', en: 'Computer programming activities', ar: 'أنشطة البرمجة الحاسوبية' },
-  { code: '6202', en: 'Computer consultancy and facilities management', ar: 'الاستشارات الحاسوبية وإدارة المرافق' },
-  { code: '6920', en: 'Accounting, bookkeeping and auditing; tax consultancy', ar: 'المحاسبة ومسك الدفاتر والمراجعة والاستشارات الضريبية' },
-  { code: '6910', en: 'Legal activities', ar: 'الأنشطة القانونية' },
-  { code: '7020', en: 'Management consultancy activities', ar: 'الاستشارات الإدارية' },
-  { code: '4649', en: 'Wholesale of other household goods', ar: 'بيع الجملة للسلع المنزلية الأخرى' },
-  { code: '4711', en: 'Retail sale in non-specialized stores', ar: 'البيع بالتجزئة في المتاجر غير المتخصصة' },
-  { code: '4100', en: 'Construction of buildings', ar: 'تشييد المباني' },
-  { code: '1071', en: 'Manufacture of bakery products', ar: 'صناعة منتجات المخابز' },
-  { code: '5610', en: 'Restaurants and mobile food service', ar: 'المطاعم وخدمات الأغذية المتنقلة' },
-];
+export const UNIT_TYPES: Coded[] = unitTypes.map((u) => ({
+  code: u.code,
+  en: UNIT_EN[u.code] ?? unitLabel(u.desc_en),
+  ar: u.desc_ar || UNIT_AR[u.code] || unitLabel(u.desc_en),
+}));
+
+/** Shown first in unit pickers. */
+export const COMMON_UNITS = ['EA', 'C62', 'KGM', 'GRM', 'TNE', 'LTR', 'M', 'MTK', 'MTQ', 'BOX', 'CT', 'PK', 'HUR', 'DAY', 'WEE', 'MON', 'ANN', 'JOB'];
+export const isUnitType = (code: string) => unitTypes.some((u) => u.code === code);
+
+export const ACTIVITY_CODES: Coded[] = activityCodes.map((a) => ({ code: a.code, en: a.Desc_en.trim(), ar: a.Desc_ar.trim() }));
+
+export const COUNTRIES: Coded[] = countryCodes
+  .map((c) => ({ code: c.code, en: c.Desc_en.trim(), ar: c.Desc_ar.trim() }))
+  .sort((a, b) => (a.code === 'EG' ? -1 : b.code === 'EG' ? 1 : a.en.localeCompare(b.en)));
+
+/** Most-used currencies first, then the rest of the published list. */
+const TOP_CURRENCIES = ['EGP', 'USD', 'EUR', 'GBP', 'SAR', 'AED', 'KWD', 'CNY'];
+export const CURRENCIES: string[] = [...TOP_CURRENCIES, ...currencyCodes.map((c) => c.code).filter((c) => !TOP_CURRENCIES.includes(c)).sort()];
+export const currencyName = (code: string) => currencyCodes.find((c) => c.code === code)?.Desc_en ?? code;
 
 export const GOVERNORATES = [
   'Cairo', 'Giza', 'Alexandria', 'Qalyubia', 'Sharqia', 'Dakahlia', 'Gharbia', 'Monufia', 'Beheira',
   'Kafr El Sheikh', 'Damietta', 'Port Said', 'Ismailia', 'Suez', 'Faiyum', 'Beni Suef', 'Minya', 'Asyut',
   'Sohag', 'Qena', 'Luxor', 'Aswan', 'Red Sea', 'New Valley', 'Matrouh', 'North Sinai', 'South Sinai',
 ];
-
-export const COUNTRIES = [
-  { code: 'EG', en: 'Egypt', ar: 'مصر' },
-  { code: 'SA', en: 'Saudi Arabia', ar: 'السعودية' },
-  { code: 'AE', en: 'United Arab Emirates', ar: 'الإمارات' },
-  { code: 'BH', en: 'Bahrain', ar: 'البحرين' },
-  { code: 'KW', en: 'Kuwait', ar: 'الكويت' },
-  { code: 'JO', en: 'Jordan', ar: 'الأردن' },
-  { code: 'GB', en: 'United Kingdom', ar: 'المملكة المتحدة' },
-  { code: 'DE', en: 'Germany', ar: 'ألمانيا' },
-  { code: 'US', en: 'United States', ar: 'الولايات المتحدة' },
-];
-
-export const CURRENCIES = ['EGP', 'USD', 'EUR', 'GBP', 'SAR', 'AED'];
 
 /** Receiver identity threshold: natural-person receivers must carry a national ID
  *  once the document total reaches this amount (EGP). Admin-configurable. */

@@ -1,4 +1,4 @@
-import { PERSON_ID_THRESHOLD_EGP } from './codes';
+import { PERSON_ID_THRESHOLD_EGP, isUnitType, taxSubType, taxType } from './codes';
 import type { EtaDocument } from './types';
 
 export type IssueLevel = 'error' | 'warning';
@@ -70,6 +70,15 @@ export function preflight(doc: EtaDocument, opts: ValidateOptions = {}): Issue[]
     if (!(l.unitValue.amountEGP > 0)) err(`${f}.unitValue`, `Line ${n}: unit price must be greater than zero.`, `البند ${n}: سعر الوحدة يجب أن يكون أكبر من صفر.`);
     if (l.unitValue.currencySold !== 'EGP' && !(l.unitValue.currencyExchangeRate! > 0))
       err(`${f}.unitValue.currencyExchangeRate`, `Line ${n}: exchange rate is required for ${l.unitValue.currencySold}.`, `البند ${n}: سعر الصرف مطلوب لعملة ${l.unitValue.currencySold}.`);
+    if (!isUnitType(l.unitType)) err(`${f}.unitType`, `Line ${n}: "${l.unitType}" is not an ETA unit type.`, `البند ${n}: "${l.unitType}" ليست وحدة قياس معتمدة.`);
+    const seen = new Set<string>();
+    l.taxableItems.forEach((t) => {
+      if (!taxType(t.taxType)) err(`${f}.taxableItems`, `Line ${n}: unknown tax type ${t.taxType}.`, `البند ${n}: نوع ضريبة غير معروف ${t.taxType}.`);
+      else if (!taxSubType(t.taxType, t.subType)) err(`${f}.taxableItems`, `Line ${n}: ${t.subType} is not a subtype of ${t.taxType}.`, `البند ${n}: ${t.subType} ليس نوعاً فرعياً من ${t.taxType}.`);
+      const key = `${t.taxType}/${t.subType}`;
+      if (seen.has(key)) err(`${f}.taxableItems`, `Line ${n}: ${key} is applied twice.`, `البند ${n}: ${key} مكررة.`);
+      seen.add(key);
+    });
     if (!l.taxableItems.some((t) => t.taxType === 'T1'))
       warn(`${f}.taxableItems`, `Line ${n}: no VAT (T1) line. Add T1 with an exemption subtype if the item is exempt.`, `البند ${n}: لا توجد ضريبة قيمة مضافة. أضف T1 بنوع إعفاء إذا كان الصنف معفى.`);
   });

@@ -1,5 +1,6 @@
 import { buildInstallments, recurringRuns } from '@/billing/schedules';
 import { VALIDATORS, newLongId, newUuid } from '@/eta/mockClient';
+import { ACTIVITY_CODES, COUNTRIES, CURRENCIES, TAX_TYPES, UNIT_TYPES } from '@/eta/codes';
 import type { DocStatus } from '@/eta/types';
 import {
   computeDoc, type ApiDay, type AuditEntry, type Customer, type DB, type Doc, type DocLine, type Item, type Plan,
@@ -48,7 +49,7 @@ export function seed(): DB {
     { id: 'i6', name: 'Thermal receipt printer', nameAr: 'طابعة إيصالات حرارية', itemType: 'GS1', itemCode: '6221234500024', internalCode: 'HW-PRN', gpcCode: '10001145', unitType: 'EA', price: 6400, currency: 'EGP', taxes: vat, codeStatus: 'Approved', codeRequestedAt: daysAgo(300) },
     { id: 'i7', name: 'Data analytics consulting (export)', nameAr: 'استشارات تحليل البيانات (تصدير)', itemType: 'EGS', itemCode: `EG-${RIN}-DATA01`, internalCode: 'DATA01', gpcCode: '10005844', unitType: 'HUR', price: 85, currency: 'USD', taxes: [{ taxType: 'T1', subType: 'V001', rate: 0 }], codeStatus: 'Approved', codeRequestedAt: daysAgo(200) },
     { id: 'i8', name: 'On-site training — per trainee', nameAr: 'تدريب بالموقع — للمتدرب', itemType: 'EGS', itemCode: `EG-${RIN}-TRN01`, internalCode: 'TRN01', gpcCode: '10005844', unitType: 'EA', price: 2200, currency: 'EGP', taxes: vat, codeStatus: 'Approved', codeRequestedAt: daysAgo(180) },
-    { id: 'i9', name: 'POS integration package', nameAr: 'حزمة ربط نقاط البيع', itemType: 'EGS', itemCode: `EG-${RIN}-POS01`, internalCode: 'POS01', gpcCode: '10005844', unitType: 'SET', price: 27000, currency: 'EGP', taxes: vat, codeStatus: 'Submitted', codeRequestedAt: daysAgo(2) },
+    { id: 'i9', name: 'POS integration package', nameAr: 'حزمة ربط نقاط البيع', itemType: 'EGS', itemCode: `EG-${RIN}-POS01`, internalCode: 'POS01', gpcCode: '10005844', unitType: 'EA', price: 27000, currency: 'EGP', taxes: vat, codeStatus: 'Submitted', codeRequestedAt: daysAgo(2) },
     { id: 'i10', name: 'Legacy data migration', nameAr: 'ترحيل بيانات قديمة', itemType: 'EGS', itemCode: `EG-${RIN}-MIG01`, internalCode: 'MIG01', gpcCode: '10005844', unitType: 'EA', price: 15000, currency: 'EGP', taxes: vat, codeStatus: 'Rejected', codeRequestedAt: daysAgo(12) },
   ];
 
@@ -192,7 +193,7 @@ export function seed(): DB {
   const receivedLines: DocLine[] = [
     { description: 'Corporate mobile plan', itemType: 'EGS', itemCode: 'EG-200017745-CORP', unitType: 'MON', quantity: 1, unitPrice: 6800, currency: 'EGP', taxes: [{ taxType: 'T1', subType: 'V009', rate: 14 }, { taxType: 'T8', subType: 'RD01', rate: 8 }] },
     { description: 'Laptop 14" i7 / 16GB', itemType: 'GS1', itemCode: '6223001234567', unitType: 'EA', quantity: 3, unitPrice: 52000, currency: 'EGP', taxes: [{ taxType: 'T1', subType: 'V009', rate: 14 }] },
-    { description: 'A4 paper, 80gsm', itemType: 'GS1', itemCode: '6224008812340', unitType: 'BX', quantity: 20, unitPrice: 1150, currency: 'EGP', taxes: [{ taxType: 'T1', subType: 'V009', rate: 14 }] },
+    { description: 'A4 paper, 80gsm', itemType: 'GS1', itemCode: '6224008812340', unitType: 'BOX', quantity: 20, unitPrice: 1150, currency: 'EGP', taxes: [{ taxType: 'T1', subType: 'V009', rate: 14 }] },
     { description: 'Colocation rack — monthly', itemType: 'EGS', itemCode: 'EG-318842200-RACK', unitType: 'MON', quantity: 1, unitPrice: 21000, currency: 'EGP', taxes: [{ taxType: 'T1', subType: 'V009', rate: 14 }] },
   ];
   for (let k = 0; k < 16; k++) {
@@ -288,7 +289,7 @@ export function seed(): DB {
   });
 
   return {
-    version: 1,
+    version: 2,
     session: { signedIn: true, onboarded: true, user: { name: 'Yasmine Fouad', email: 'yasmine@lawtechlabs.eg' } },
     company: {
       name: 'Lawtech Labs Egypt LLC', nameAr: 'لوتك لابز مصر ش.ذ.م.م', rin: RIN, activityCode: '6201', email: 'billing@lawtechlabs.eg', phone: '+20 2 2461 0090',
@@ -331,11 +332,11 @@ export function seed(): DB {
         { id: 'u4', name: 'Dina Mostafa', email: 'dina@fatura.eg', role: 'Read-only', mfa: false, lastActive: daysAgo(9, 9) },
       ],
       refs: [
-        { id: 'tax', name: { en: 'Tax types & subtypes', ar: 'أنواع الضرائب' }, source: '/codes/tax-types', count: 47, syncedAt: daysAgo(0, 3), status: 'ok' },
-        { id: 'unit', name: { en: 'Unit types', ar: 'وحدات القياس' }, source: '/codes/unit-types', count: 1209, syncedAt: daysAgo(0, 3), status: 'ok' },
-        { id: 'activity', name: { en: 'Activity codes', ar: 'أكواد الأنشطة' }, source: '/codes/activity-types', count: 1182, syncedAt: daysAgo(0, 3), status: 'ok' },
-        { id: 'country', name: { en: 'Country codes', ar: 'أكواد الدول' }, source: '/codes/country-codes', count: 249, syncedAt: daysAgo(0, 3), status: 'ok' },
-        { id: 'currency', name: { en: 'Currencies', ar: 'العملات' }, source: '/codes/currencies', count: 170, syncedAt: daysAgo(0, 3), status: 'ok' },
+        { id: 'tax', name: { en: 'Tax types & subtypes', ar: 'أنواع الضرائب' }, source: '/codes/tax-types', count: TAX_TYPES.reduce((s, t) => s + t.subTypes.length, 0), syncedAt: daysAgo(0, 3), status: 'ok' },
+        { id: 'unit', name: { en: 'Unit types', ar: 'وحدات القياس' }, source: '/codes/unit-types', count: UNIT_TYPES.length, syncedAt: daysAgo(0, 3), status: 'ok' },
+        { id: 'activity', name: { en: 'Activity codes', ar: 'أكواد الأنشطة' }, source: '/codes/activity-types', count: ACTIVITY_CODES.length, syncedAt: daysAgo(0, 3), status: 'ok' },
+        { id: 'country', name: { en: 'Country codes', ar: 'أكواد الدول' }, source: '/codes/country-codes', count: COUNTRIES.length, syncedAt: daysAgo(0, 3), status: 'ok' },
+        { id: 'currency', name: { en: 'Currencies', ar: 'العملات' }, source: '/codes/currencies', count: CURRENCIES.length, syncedAt: daysAgo(0, 3), status: 'ok' },
         { id: 'doctype', name: { en: 'Document types & workflow windows', ar: 'أنواع المستندات' }, source: '/api/v1.0/documenttypes', count: 4, syncedAt: daysAgo(0, 3), status: 'ok' },
         { id: 'gpc', name: { en: 'GS1 / GPC classification', ar: 'تصنيف GS1 / GPC' }, source: '/codes/gpc', count: 4851, syncedAt: daysAgo(8, 3), status: 'stale' },
       ],

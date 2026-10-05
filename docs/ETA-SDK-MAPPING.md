@@ -6,11 +6,16 @@ How each part of the ETA eInvoicing SDK (https://sdk.invoicing.eta.gov.eg) is us
 
 | | Identity (OAuth2) | API |
 |---|---|---|
+| SIT (system integration, for integrators) | `https://id.sit.eta.gov.eg/connect/token` | `https://api.sit.invoicing.eta.gov.eg` |
 | Pre-production | `https://id.preprod.eta.gov.eg/connect/token` | `https://api.preprod.invoicing.eta.gov.eg` |
 | Production | `https://id.eta.gov.eg/connect/token` | `https://api.invoicing.eta.gov.eg` |
 
 - Grant: `client_credentials`, scope `InvoicingAPI`. Each taxpayer registers Fatura as an ERP
   system on the ETA portal and receives a client ID/secret **per environment**.
+- Bodies are UTF-8 JSON with non-ASCII characters **unescaped**. ETA hashes the bytes it receives,
+  so an Arabic description sent as `\uXXXX` escapes produces a signature mismatch.
+- Paths: the SDK documents `/api/v1.0/…`. The community PHP client (`mrkindy/EgyptianEInvoice`)
+  calls the same operations under `/api/v1/…`, so both prefixes appear in use.
 - UI: Onboarding step 3, Settings → ETA connection (environment switch with confirmation, test
   connection = token + Get Document Types). Secrets are stored server-side only.
 
@@ -32,6 +37,8 @@ How each part of the ETA eInvoicing SDK (https://sdk.invoicing.eta.gov.eg) is us
 | Request document package | `POST /api/v1.0/documentPackages/requests` | Tax reports → "ETA package", Settings → Data → archive |
 | Create EGS code usage | `POST /api/v1.0/codetypes/requests/codes` | Items & codes → "Request EGS codes" review dialog |
 | My code usage requests | `GET /api/v1.0/codetypes/requests/my` | Code status column (Submitted / Approved / Rejected) |
+| Get code details | `GET /api/v1.0/codetypes/{codeType}/codes/{itemCode}` | Validating a GS1 barcode or EGS code when adding an item |
+| Request code reuse | `PUT /api/v1.0/codetypes/requests/codeusages` | Using a code another taxpayer registered (e.g. a distributor's EGS codes) |
 | Taxpayer notifications | `GET /api/v1/notifications/taxpayer` | Bell menu, dashboard tasks |
 | Submit receipts (POS) | `POST /api/v1/receiptsubmissions` | E-receipts (POS) page |
 
@@ -53,6 +60,19 @@ Rules enforced by pre-flight (`src/eta/validate.ts`) before signing:
 - Every line needs an item code, quantity > 0, price > 0, and an exchange rate for non-EGP currencies.
   A missing T1 line is a warning, because exempt items use T1 with an exemption subtype.
 - Item codes not yet *Approved* produce a warning, because they come back Invalid from the Code validator.
+
+## Code tables (`src/eta/data/`)
+
+Official snapshots of the SDK code lists: 20 tax types (T1–T12 taxable, T13–T20 non-taxable),
+56 tax subtypes, 100 unit types, 435 activity codes, 249 countries and 180 currencies. They come from
+`mrkindy/EgyptianEInvoice` (MIT) and are re-synced from the SDK by the admin Reference data job.
+
+Facts these tables settled, and which pre-flight now enforces:
+- Stamping tax is split: **T5** is percentage (ST01) and **T6** is a fixed amount (ST02). Likewise
+  T13/ST03 and T14/ST04. Fixed-amount types are T3, T6 and T14, plus the `…02` / `…04` fee subtypes.
+- A subtype must belong to its tax type, and the same type/subtype pair can't repeat on a line.
+- `unitType` must come from the ETA list. Codes like `PCE`, `MTR`, `BX` and `SET` look plausible but
+  don't exist; use `C62`/`EA`, `M`, `BOX` and `EA` instead.
 
 ## Tax calculation (`src/eta/calc.ts`)
 
@@ -106,5 +126,5 @@ The SDK site was blocked from the build environment, so confirm these before go-
 3. The national-ID threshold for individual receivers on invoices (EGP 50,000 in the seed) and on
    e-receipts (EGP 150,000 per Receipt v1.2).
 4. Submission batch limits (documents per call and payload size) for the bulk-submit chunker.
-5. The full tax subtype list, which is synced from `/codes/tax-types` by the admin Reference data job.
+5. Whether any tax subtypes or unit types were added after the 2022 snapshot in `src/eta/data/`.
 6. The e-receipt (v1.2) header fields and POS authentication headers.

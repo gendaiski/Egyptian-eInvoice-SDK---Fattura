@@ -28,6 +28,13 @@ describe('preflight', () => {
     const issues = preflight(doc({ documentType: 'C', dateTimeIssued: '2026-10-06T10:00:00Z' }), { now });
     expect(issues.map((i) => i.field)).toEqual(expect.arrayContaining(['dateTimeIssued', 'references']));
   });
+  it('rejects unknown unit types, mismatched subtypes and duplicate taxes', () => {
+    const bad = { ...line, unitType: 'PCE', taxableItems: [{ taxType: 'T1', subType: 'W001', rate: 14, amount: 1 }, { taxType: 'T5', subType: 'ST01', rate: 1, amount: 1 }, { taxType: 'T5', subType: 'ST01', rate: 1, amount: 1 }] };
+    const msgs = preflight(doc({ invoiceLines: [bad] }), { now }).filter((i) => i.level === 'error').map((i) => i.en);
+    expect(msgs.some((m) => m.includes('"PCE" is not an ETA unit type'))).toBe(true);
+    expect(msgs.some((m) => m.includes('W001 is not a subtype of T1'))).toBe(true);
+    expect(msgs.some((m) => m.includes('T5/ST01 is applied twice'))).toBe(true);
+  });
   it('flags duplicate internal numbers', () => {
     expect(preflight(doc(), { now, existingInternalIds: ['INV-1'] })[0].field).toBe('internalID');
   });

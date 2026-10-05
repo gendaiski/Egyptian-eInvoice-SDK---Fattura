@@ -1,7 +1,8 @@
 import { CalendarClock, Layers, Repeat, Zap } from 'lucide-react';
 import type { PaymentPlan } from '@/billing/schedules';
+import { COMMON_UNITS, UNIT_TYPES } from '@/eta/codes';
 import type { DocumentTypeCode, PartyType } from '@/eta/types';
-import { useI18n } from '@/i18n';
+import { bi, useI18n } from '@/i18n';
 import { dueInfo, type Doc } from '@/store/model';
 import { Badge } from '@/components/ui';
 
@@ -37,4 +38,17 @@ export function DueBadge({ doc }: { doc: Doc }) {
   if (d.state === 'overdue') return <Badge tone="bad" icon={<CalendarClock className="size-3" />}>{L('Overdue', 'متأخرة')} · {date(d.dueDate)}</Badge>;
   if (d.state === 'partial') return <Badge tone="warn">{L('Part-paid', 'مدفوعة جزئياً')}</Badge>;
   return <span className="text-[12.5px] text-ink-muted">{L('Due', 'تستحق')} {date(d.dueDate)}</span>;
+}
+
+/** <option>s for an ETA unit-type picker: common units first, then the full published list. */
+export function UnitOptions() {
+  const { L, lang } = useI18n();
+  const common = COMMON_UNITS.map((c) => UNIT_TYPES.find((u) => u.code === c)!).filter(Boolean);
+  const rest = UNIT_TYPES.filter((u) => !COMMON_UNITS.includes(u.code)).sort((a, b) => a.en.localeCompare(b.en));
+  return (
+    <>
+      <optgroup label={L('Common', 'الأكثر استخداماً')}>{common.map((u) => <option key={u.code} value={u.code}>{u.code} · {bi(lang, u)}</option>)}</optgroup>
+      <optgroup label={L('All ETA units', 'كل وحدات المصلحة')}>{rest.map((u) => <option key={u.code} value={u.code}>{u.code} · {bi(lang, u)}</option>)}</optgroup>
+    </>
+  );
 }

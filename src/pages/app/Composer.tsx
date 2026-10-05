@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { addPeriods, buildInstallments, dueDate, recurringRuns, type Frequency, type PaymentPlan, type PaymentTerms } from '@/billing/schedules';
 import { computeLine, type DraftTax } from '@/eta/calc';
-import { ACTIVITY_CODES, COUNTRIES, CURRENCIES, GOVERNORATES, TAX_TYPES, UNIT_TYPES, taxType } from '@/eta/codes';
+import { ACTIVITY_CODES, COUNTRIES, CURRENCIES, GOVERNORATES, TAX_TYPES, taxType } from '@/eta/codes';
 import { documentHash, serializeForSigning } from '@/eta/serialize';
 import type { DocumentTypeCode, PartyType } from '@/eta/types';
 import { preflight, type Issue } from '@/eta/validate';
@@ -15,7 +15,7 @@ import { useActions, useStore } from '@/store/store';
 import {
   Button, Callout, Card, Field, Input, Modal, Mono, PageHeader, Segmented, Select, Table, Td, Textarea, Th, cx, useToast,
 } from '@/components/ui';
-import { useLabels } from './shared';
+import { UnitOptions, useLabels } from './shared';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const localDT = (iso: string) => { const d = new Date(iso); const off = d.getTimezoneOffset(); return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16); };
@@ -263,7 +263,7 @@ export function Composer() {
                     )}
                     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-[90px_120px_minmax(0,150px)_90px_90px_minmax(0,1fr)]">
                       <Field label={L('Qty', 'الكمية')}>{(fid) => <Input id={fid} type="number" min={0} step="any" value={l.quantity} onChange={(e) => patchLine(i, { quantity: Number(e.target.value) })} aria-invalid={err('quantity')} className="tabular" />}</Field>
-                      <Field label={L('Unit', 'الوحدة')}>{(fid) => <Select id={fid} value={l.unitType} onChange={(e) => patchLine(i, { unitType: e.target.value })}>{UNIT_TYPES.map((u) => <option key={u.code} value={u.code}>{u.code} · {bi(lang, u)}</option>)}</Select>}</Field>
+                      <Field label={L('Unit', 'الوحدة')}>{(fid) => <Select id={fid} value={l.unitType} onChange={(e) => patchLine(i, { unitType: e.target.value })}><UnitOptions /></Select>}</Field>
                       <Field label={L('Unit price', 'سعر الوحدة')}>{(fid) => <Input id={fid} type="number" min={0} step="any" value={l.unitPrice} onChange={(e) => patchLine(i, { unitPrice: Number(e.target.value) })} aria-invalid={err('unitValue')} className="tabular" />}</Field>
                       <Field label={L('Currency', 'العملة')}>{(fid) => <Select id={fid} value={l.currency} onChange={(e) => patchLine(i, { currency: e.target.value, exchangeRate: e.target.value === 'EGP' ? undefined : l.exchangeRate ?? 48.62 })}>{CURRENCIES.map((c) => <option key={c}>{c}</option>)}</Select>}</Field>
                       <Field label={L('Disc. %', 'خصم %')}>{(fid) => <Input id={fid} type="number" min={0} max={100} step="any" value={l.discountRate ?? 0} onChange={(e) => patchLine(i, { discountRate: Number(e.target.value) })} className="tabular" />}</Field>
