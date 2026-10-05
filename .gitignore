@@ -10,3 +10,4 @@ dist-server
 signer-agent/dist
 .data
 .vercel
+e2e/out

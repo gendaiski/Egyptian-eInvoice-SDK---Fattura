@@ -58,6 +58,8 @@ npm run build:signer   # bundles Fatura Signer (signer-agent/dist/fatura-signer.
 
 Integrators: see `docs/API.md` (REST API, webhooks, signer protocol).
 
+**Taking over the project?** Start with `docs/HANDOFF.md` and `AGENTS.md`; `handoff/CODEX_PROMPT.md` is a ready-made kick-off prompt.
+
 ## What is in the box
 
 | Area | Screens |

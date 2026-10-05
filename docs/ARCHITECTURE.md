@@ -1,4 +1,9 @@
-# Production architecture (the backend this front end expects)
+# Production architecture
+
+> **Status (Oct 2026):** the back end is implemented in `server/`. Differences from the target design below:
+> no separate queue service (Postgres tables `signing_jobs` and `outbox` plus a worker tick), the signer agent
+> long-polls over HTTPS instead of WebSocket, secrets use an app-level AES-256-GCM key instead of KMS, and
+> reminders and reference-data sync are not built yet. See `docs/HANDOFF.md` for the current state.
 
 ```
 Browser (this SPA) ──HTTPS──► Fatura API (multi-tenant)
