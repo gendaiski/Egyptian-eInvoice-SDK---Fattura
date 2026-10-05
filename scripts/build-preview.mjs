@@ -11,7 +11,10 @@ const theme = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 const fonts = html.match(/<link href="(https:\/\/fonts\.googleapis\.com\/css2[^"]+)"/)[1];
 const js = pick('.js').replace(/<\/script/gi, '<\\/script');
 const css = pick('.css').replace(/<\/style/gi, '<\\/style');
-const page = `<title>Fatura e-Invoicing</title>
+// The charset meta keeps Arabic intact when the file is opened directly from disk.
+const page = `<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fatura e-Invoicing</title>
 <meta name="description" content="Fatura — Egyptian ETA e-invoicing: website, taxpayer workspace and admin panel.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

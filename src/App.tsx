@@ -1,5 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { TestGuide } from './components/TestGuide';
+import { DATA_MODE, IS_PREVIEW_HOST } from './env';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AppLayout } from './layouts/AppLayout';
 import { SiteLayout } from './site/SiteLayout';
@@ -107,6 +109,7 @@ export function App() {
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
+    {IS_PREVIEW_HOST && DATA_MODE === 'local' && <TestGuide />}
     </Suspense>
   );
 }

@@ -43,7 +43,7 @@ Settings → ETA connection once you have ETA ERP credentials.
 ```bash
 npm test               # 41 tests: tax maths, serialization, validation, schedules, API, signing, ETA client
 npm run typecheck
-npm run build:preview  # single-file browser-only demo (dist-preview/fatura.html)
+npm run build:preview  # single-file browser-only demo with a guided test-scenario panel (dist-preview/fatura.html)
 npm run build:vercel   # Vercel Build Output (.vercel/output)
 npm run build:signer   # bundles Fatura Signer (signer-agent/dist/fatura-signer.mjs)
 ```
