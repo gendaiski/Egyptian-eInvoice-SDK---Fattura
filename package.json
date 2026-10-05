@@ -3,13 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Fatura — Egyptian ETA e-invoicing SaaS: taxpayer workspace and platform admin panel",
+  "description": "Fatura \u2014 Egyptian ETA e-invoicing SaaS: taxpayer workspace and platform admin panel",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:preview": "node scripts/build-preview.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

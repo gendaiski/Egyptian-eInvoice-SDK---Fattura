@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { bi, useI18n } from '@/i18n';
 import type { Plan } from '@/store/model';
 import { useStore } from '@/store/store';
-import { Badge, Button, Card, Field, Input, Modal, PageHeader, Switch, useToast } from '@/components/ui';
+import { Badge, Button, Card, Field, Input, LinkButton, Modal, PageHeader, Switch, useToast } from '@/components/ui';
 
 export function Plans() {
   const { db, set } = useStore();
@@ -13,7 +13,7 @@ export function Plans() {
   return (
     <div className="animate-in">
       <PageHeader title={L('Plans & pricing', 'الباقات والأسعار')} description={L('Each plan is sold four ways: monthly, yearly, a yearly licence in installments, or a one-time licence. Prices exclude 14% VAT.', 'كل باقة تُباع بأربع طرق: شهري وسنوي وتقسيط وترخيص دائم. الأسعار لا تشمل الضريبة.')}
-        actions={<Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setEdit({ id: `plan${db.admin.plans.length + 1}`, name: '', nameAr: '', blurb: { en: '', ar: '' }, docsPerMonth: 500, users: 5, branches: 2, features: [], monthly: 0, yearly: 0, oneTime: 0, installments: { count: 6, amount: 0 }, active: false })}>{L('New plan', 'باقة جديدة')}</Button>} />
+        actions={<><LinkButton to="/pricing">{L('View pricing page', 'عرض صفحة الأسعار')}</LinkButton><Button variant="primary" icon={<Plus className="size-4" />} onClick={() => setEdit({ id: `plan${db.admin.plans.length + 1}`, name: '', nameAr: '', blurb: { en: '', ar: '' }, docsPerMonth: 500, users: 5, branches: 2, features: [], monthly: 0, yearly: 0, oneTime: 0, installments: { count: 6, amount: 0 }, active: false })}>{L('New plan', 'باقة جديدة')}</Button></>} />
       <div className="grid gap-4 lg:grid-cols-3">
         {db.admin.plans.map((p) => {
           const subs = db.admin.tenants.filter((t) => t.planId === p.id).length;

@@ -2,7 +2,23 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AdminLayout } from './layouts/AdminLayout';
 import { AppLayout } from './layouts/AppLayout';
-const Landing = lazy(() => import('./pages/Landing').then((m) => ({ default: m.Landing })));
+import { SiteLayout } from './site/SiteLayout';
+const Home = lazy(() => import('./site/pages/Home').then((m) => ({ default: m.Home })));
+const Product = lazy(() => import('./site/pages/Product').then((m) => ({ default: m.Product })));
+const PaymentsPage = lazy(() => import('./site/pages/Payments').then((m) => ({ default: m.Payments })));
+const ReceiptsPage = lazy(() => import('./site/pages/Receipts').then((m) => ({ default: m.ReceiptsPage })));
+const Solutions = lazy(() => import('./site/pages/Solutions').then((m) => ({ default: m.Solutions })));
+const Pricing = lazy(() => import('./site/pages/Pricing').then((m) => ({ default: m.Pricing })));
+const Developers = lazy(() => import('./site/pages/Developers').then((m) => ({ default: m.Developers })));
+const Guide = lazy(() => import('./site/pages/Guide').then((m) => ({ default: m.Guide })));
+const DesignSystem = lazy(() => import('./site/pages/DesignSystem').then((m) => ({ default: m.DesignSystem })));
+const Security = lazy(() => import('./site/pages/Company').then((m) => ({ default: m.Security })));
+const StatusPage = lazy(() => import('./site/pages/Company').then((m) => ({ default: m.Status })));
+const About = lazy(() => import('./site/pages/Company').then((m) => ({ default: m.About })));
+const Contact = lazy(() => import('./site/pages/Company').then((m) => ({ default: m.Contact })));
+const Terms = lazy(() => import('./site/pages/Company').then((m) => ({ default: m.Terms })));
+const Privacy = lazy(() => import('./site/pages/Company').then((m) => ({ default: m.Privacy })));
+const Leads = lazy(() => import('./pages/admin/Leads').then((m) => ({ default: m.Leads })));
 const Onboarding = lazy(() => import('./pages/auth/Onboarding').then((m) => ({ default: m.Onboarding })));
 const SignIn = lazy(() => import('./pages/auth/Auth').then((m) => ({ default: m.SignIn })));
 const SignUp = lazy(() => import('./pages/auth/Auth').then((m) => ({ default: m.SignUp })));
@@ -36,7 +52,23 @@ export function App() {
   return (
     <Suspense fallback={<div className="p-10"><div className="skeleton h-8 w-64 mb-4" /><div className="skeleton h-40 w-full" /></div>}>
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route element={<SiteLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/product" element={<Product />} />
+        <Route path="/payments" element={<PaymentsPage />} />
+        <Route path="/e-receipts" element={<ReceiptsPage />} />
+        <Route path="/solutions" element={<Solutions />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/developers" element={<Developers />} />
+        <Route path="/eta-guide" element={<Guide />} />
+        <Route path="/security" element={<Security />} />
+        <Route path="/status" element={<StatusPage />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/legal/terms" element={<Terms />} />
+        <Route path="/legal/privacy" element={<Privacy />} />
+        <Route path="/design-system" element={<DesignSystem />} />
+      </Route>
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/onboarding" element={<Onboarding />} />
@@ -63,6 +95,7 @@ export function App() {
         <Route index element={<AdminOverview />} />
         <Route path="tenants" element={<Tenants />} />
         <Route path="tenants/:id" element={<TenantDetail />} />
+        <Route path="leads" element={<Leads />} />
         <Route path="plans" element={<Plans />} />
         <Route path="billing" element={<Billing />} />
         <Route path="eta" element={<EtaHealth />} />

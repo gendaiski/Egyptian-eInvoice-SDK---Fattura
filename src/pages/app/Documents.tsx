@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n';
 import { docTotal, dueInfo, toEtaDocument } from '@/store/model';
 import { useActions, useStore } from '@/store/store';
 import { preflight, hasErrors } from '@/eta/validate';
+import { saveTextFile } from '@/lib/files';
 import {
   Button, Callout, Card, EmptyState, Input, LinkButton, Modal, Money, PageHeader, Select, StatusBadge, Table, Tabs, Td, Th, useToast, Mono,
 } from '@/components/ui';
@@ -65,8 +66,7 @@ export function Documents() {
   const exportCsv = () => {
     const header = ['internalID', 'type', 'uuid', 'issued', 'status', 'receiverType', 'receiverId', 'receiverName', 'total'];
     const lines = rows.map((d) => [d.internalID, d.documentType, d.uuid ?? '', d.issuedAt, d.status, d.counterparty.type, d.counterparty.id ?? '', `"${(d.counterparty.name ?? '').replace(/"/g, '""')}"`, docTotal(d).toFixed(2)].join(','));
-    const url = URL.createObjectURL(new Blob([[header.join(','), ...lines].join('\n')], { type: 'text/csv' }));
-    const a = document.createElement('a'); a.href = url; a.download = 'fatura-documents.csv'; a.click(); URL.revokeObjectURL(url);
+    if (!saveTextFile('fatura-documents.csv', [header.join(','), ...lines].join('\n'))) toast({ tone: 'info', text: L('Downloads are disabled in this live preview; the deployed app saves the file.', 'التنزيل غير متاح في هذه المعاينة؛ التطبيق المنشور يحفظ الملف.') });
   };
 
   const allChecked = rows.length > 0 && rows.slice(0, limit).every((r) => sel.includes(r.id));

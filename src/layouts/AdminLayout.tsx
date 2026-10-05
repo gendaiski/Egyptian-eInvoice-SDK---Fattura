@@ -1,4 +1,4 @@
-import { Activity, BookOpen, Building2, CreditCard, Gauge, Layers, ScrollText, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { Activity, BookOpen, Building2, CreditCard, Gauge, Globe, Inbox, Layers, ScrollText, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useStore } from '@/store/store';
 import { Shell, type NavGroup } from './Shell';
@@ -12,6 +12,7 @@ export function AdminLayout() {
     {
       label: L('Customers', 'العملاء'),
       items: [
+        { to: '/admin/leads', label: L('Leads', 'العملاء المحتملون'), icon: <Inbox />, badge: db.admin.leads.filter((l) => l.status === 'new').length },
         { to: '/admin/tenants', label: L('Tenants', 'الشركات المشتركة'), icon: <Building2 /> },
         { to: '/admin/billing', label: L('Billing & collections', 'الفوترة والتحصيل'), icon: <CreditCard />, badge: pastDue },
         { to: '/admin/plans', label: L('Plans & pricing', 'الباقات والأسعار'), icon: <Layers /> },
@@ -29,7 +30,8 @@ export function AdminLayout() {
       label: L('Access', 'الصلاحيات'),
       items: [
         { to: '/admin/team', label: L('Admin team & roles', 'فريق الإدارة والأدوار'), icon: <ShieldCheck /> },
-        { to: '/admin/settings', label: L('Platform settings', 'إعدادات المنصة'), icon: <SlidersHorizontal /> },
+        { to: '/admin/settings', label: L('Platform & website', 'المنصة والموقع'), icon: <SlidersHorizontal /> },
+        { to: '/', end: true, label: L('View website', 'عرض الموقع'), icon: <Globe /> },
       ],
     },
   ];

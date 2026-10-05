@@ -2,63 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fatura design tokens. Space-separated RGB so Tailwind alpha modifiers work.
-   One accent (Nile green), warm paper neutrals, semantic status colours. */
-/* The invoice paper is always printed light, whatever the app theme. */
-:root, .paper-light {
-  --canvas: 246 244 239;
+/* ─────────────────────────────────────────────────────────────────────────
+   Fatura design system v2 — tokens
+   Layout concept: ledger-calm workspace, editorial marketing; one Nile accent,
+   stone neutrals biased toward the accent hue, status colours kept separate.
+   Colours are space-separated RGB so Tailwind alpha modifiers work.
+   Full reference: /design-system and docs/DESIGN-SYSTEM.md
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --canvas: 242 244 241;
   --surface: 255 255 255;
-  --sunken: 239 236 229;
-  --line: 224 219 208;
-  --ink: 24 28 27;
-  --ink-muted: 84 90 88;
-  --ink-subtle: 128 133 130;
-  --accent: 13 92 85;
-  --accent-strong: 8 70 64;
-  --accent-soft: 220 236 232;
+  --sunken: 234 238 235;
+  --line: 219 225 221;
+  --line-strong: 196 205 200;
+  --ink: 15 23 21;
+  --ink-muted: 70 82 78;
+  --ink-subtle: 112 124 120;
+  --accent: 10 94 84;
+  --accent-strong: 6 72 64;
+  --accent-soft: 214 235 229;
   --accent-on: 255 255 255;
-  --ok: 22 120 72;
-  --ok-soft: 222 241 229;
-  --warn: 160 98 10;
-  --warn-soft: 250 238 214;
-  --bad: 180 40 40;
-  --bad-soft: 250 226 224;
-  --info: 40 88 160;
-  --info-soft: 225 234 248;
-  --shadow: 40 34 20;
+  --gold: 190 140 48;
+  --ok: 21 122 74;
+  --ok-soft: 221 242 230;
+  --warn: 156 96 8;
+  --warn-soft: 250 238 212;
+  --bad: 178 38 38;
+  --bad-soft: 250 225 223;
+  --info: 36 86 160;
+  --info-soft: 224 234 248;
+  --shadow: 20 40 34;
+  /* shape, motion, type roles */
+  --radius-control: 8px;
+  --radius-card: 14px;
+  --radius-sheet: 20px;
+  --ease-standard: cubic-bezier(.2, .7, .2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 320ms;
+  --font-display: 'Alexandria', 'Geist', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-body: 'Geist', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-body-ar: 'IBM Plex Sans Arabic', 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
   color-scheme: light;
 }
 
+/* Dark: follows the OS when no explicit choice is set, and the explicit toggle wins both ways. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+  --canvas: 11 16 15;
+  --surface: 18 25 23;
+  --sunken: 8 12 11;
+  --line: 36 47 44;
+  --line-strong: 56 70 66;
+  --ink: 231 238 235;
+  --ink-muted: 158 172 167;
+  --ink-subtle: 116 130 125;
+  --accent: 82 202 180;
+  --accent-strong: 124 220 202;
+  --accent-soft: 18 52 47;
+  --accent-on: 6 26 23;
+  --gold: 226 182 96;
+  --ok: 86 198 132;
+  --ok-soft: 18 48 32;
+  --warn: 232 178 84;
+  --warn-soft: 54 41 15;
+  --bad: 242 122 114;
+  --bad-soft: 60 23 21;
+  --info: 126 170 238;
+  --info-soft: 21 35 60;
+  --shadow: 0 0 0;
+    color-scheme: dark;
+  }
+}
 :root[data-theme='dark'] {
-  --canvas: 15 18 18;
-  --surface: 22 26 26;
-  --sunken: 11 13 13;
-  --line: 44 50 49;
-  --ink: 236 234 228;
-  --ink-muted: 168 172 168;
-  --ink-subtle: 124 129 126;
-  --accent: 84 196 178;
-  --accent-strong: 120 214 198;
-  --accent-soft: 20 52 48;
-  --accent-on: 8 26 24;
-  --ok: 88 196 132;
-  --ok-soft: 20 48 33;
-  --warn: 232 178 86;
-  --warn-soft: 56 42 16;
-  --bad: 240 120 112;
-  --bad-soft: 62 24 22;
-  --info: 128 170 236;
-  --info-soft: 22 36 60;
+  --canvas: 11 16 15;
+  --surface: 18 25 23;
+  --sunken: 8 12 11;
+  --line: 36 47 44;
+  --line-strong: 56 70 66;
+  --ink: 231 238 235;
+  --ink-muted: 158 172 167;
+  --ink-subtle: 116 130 125;
+  --accent: 82 202 180;
+  --accent-strong: 124 220 202;
+  --accent-soft: 18 52 47;
+  --accent-on: 6 26 23;
+  --gold: 226 182 96;
+  --ok: 86 198 132;
+  --ok-soft: 18 48 32;
+  --warn: 232 178 84;
+  --warn-soft: 54 41 15;
+  --bad: 242 122 114;
+  --bad-soft: 60 23 21;
+  --info: 126 170 238;
+  --info-soft: 21 35 60;
   --shadow: 0 0 0;
   color-scheme: dark;
+}
+
+/* The invoice paper is always printed light, whatever the app theme. */
+.paper-light {
+  --canvas: 242 244 241;
+  --surface: 255 255 255;
+  --sunken: 234 238 235;
+  --line: 219 225 221;
+  --line-strong: 196 205 200;
+  --ink: 15 23 21;
+  --ink-muted: 70 82 78;
+  --ink-subtle: 112 124 120;
+  --accent: 10 94 84;
+  --accent-strong: 6 72 64;
+  --accent-soft: 214 235 229;
+  --accent-on: 255 255 255;
+  --gold: 190 140 48;
+  --ok: 21 122 74;
+  --ok-soft: 221 242 230;
+  --warn: 156 96 8;
+  --warn-soft: 250 238 212;
+  --bad: 178 38 38;
+  --bad-soft: 250 225 223;
+  --info: 36 86 160;
+  --info-soft: 224 234 248;
+  --shadow: 20 40 34;
+  color-scheme: light;
 }
 
 @layer base {
   html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   body { @apply bg-canvas text-ink font-sans text-[14px] leading-[1.5]; }
-  :lang(ar) body { font-family: 'IBM Plex Sans Arabic', 'Geist', system-ui, sans-serif; }
-  h1, h2, h3 { letter-spacing: -0.015em; }
-  :lang(ar) h1, :lang(ar) h2, :lang(ar) h3 { letter-spacing: 0; }
+  :lang(ar) body { font-family: var(--font-body-ar); }
+  h1, h2, h3 { letter-spacing: -0.015em; text-wrap: balance; }
+  h1, .font-display { font-family: var(--font-display); letter-spacing: -0.025em; font-weight: 600; }
+  :lang(ar) h1, :lang(ar) .font-display, :lang(ar) h2, :lang(ar) h3 { letter-spacing: 0; }
   ::selection { background: rgb(var(--accent) / .18); }
   :focus-visible { outline: 2px solid rgb(var(--accent)); outline-offset: 2px; border-radius: 6px; }
   .tabular { font-variant-numeric: tabular-nums; }
@@ -67,7 +143,7 @@
 }
 
 @layer components {
-  .card { @apply bg-surface border border-line rounded-lg shadow-card; }
+  .card { @apply bg-surface border border-line rounded-card shadow-card; }
   .label { @apply block text-[12.5px] font-medium text-ink-muted mb-1.5; }
   .input {
     @apply w-full h-9 px-3 rounded bg-surface border border-line text-ink placeholder:text-ink-subtle

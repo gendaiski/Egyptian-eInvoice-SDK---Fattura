@@ -99,16 +99,23 @@ export interface PlatformInvoice {
 export interface AuditEntry { id: string; at: string; actor: string; tenantId?: string; action: string; target: string; ip: string }
 export interface AdminUser { id: string; name: string; email: string; role: 'Super admin' | 'Support' | 'Finance' | 'Read-only'; mfa: boolean; lastActive: string }
 export interface RefTable { id: string; name: Bi; source: string; count: number; syncedAt: string; status: 'ok' | 'stale' | 'error' }
+export interface Lead {
+  id: string; at: string; name: string; email: string; company: string; phone?: string;
+  topic: 'demo' | 'sales' | 'support' | 'partnership'; message: string;
+  source: 'contact' | 'pricing' | 'signup' | 'guide'; planId?: string; billing?: string; docsPerMonth?: number;
+  status: 'new' | 'contacted' | 'qualified' | 'won' | 'lost';
+}
+export interface SiteSettings { banner: { on: boolean; tone: 'info' | 'warn'; text: Bi; link?: string } }
 export interface ApiDay { date: string; submitted: number; valid: number; invalid: number; errors: number; p95: number }
 
 export interface DB {
   version: number;
-  session: { signedIn: boolean; onboarded: boolean; user: { name: string; email: string } };
+  session: { signedIn: boolean; onboarded: boolean; user: { name: string; email: string }; tenantId?: string };
   company: Company; integration: Integration; signing: Signing;
   settings: { numbering: Record<'I' | 'C' | 'D' | 'EI', { pattern: string; next: number }>; personIdThreshold: number; defaultTerms: PaymentTerms; autoEmail: boolean };
   customers: Customer[]; items: Item[]; docs: Doc[]; recurring: Recurring[]; submissions: Submission[];
   receipts: Receipt[]; members: Member[]; notices: Notice[];
-  admin: { plans: Plan[]; tenants: Tenant[]; invoices: PlatformInvoice[]; audit: AuditEntry[]; users: AdminUser[]; refs: RefTable[]; api: ApiDay[] };
+  admin: { plans: Plan[]; tenants: Tenant[]; invoices: PlatformInvoice[]; audit: AuditEntry[]; users: AdminUser[]; refs: RefTable[]; api: ApiDay[]; leads: Lead[]; site: SiteSettings };
 }
 
 /* ---------- Derived helpers ---------- */

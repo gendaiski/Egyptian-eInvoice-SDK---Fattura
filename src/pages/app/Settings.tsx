@@ -3,6 +3,7 @@ import {
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { billingOf, priceFor } from '@/billing/plans';
 import { ENDPOINTS } from '@/eta/client';
 import { ACTIVITY_CODES, GOVERNORATES } from '@/eta/codes';
 import { DOCUMENT_TYPES, mockEta } from '@/eta/mockClient';
@@ -297,13 +298,13 @@ function NumberingSection() {
 }
 
 function BillingSection() {
-  const { db } = useStore();
+  const { db, set } = useStore();
   const { L, lang, money, date } = useI18n();
   const toast = useToast();
-  const tenant = db.admin.tenants[0];
+  const tenant = db.admin.tenants.find((t) => t.id === db.session.tenantId) ?? db.admin.tenants[0];
   const plan = db.admin.plans.find((p) => p.id === tenant.planId)!;
   const used = db.docs.filter((d) => d.direction === 'sent' && d.submittedAt?.startsWith(new Date().toISOString().slice(0, 7))).length;
-  const [model, setModel] = useState<'monthly' | 'yearly' | 'one-time' | 'installments'>(tenant.cycle ?? 'monthly');
+  const [model, setModel] = useState<'monthly' | 'yearly' | 'one-time' | 'installments'>(tenant.model === 'recurring' ? tenant.cycle ?? 'monthly' : tenant.model);
   const invoices = db.admin.invoices.filter((i) => i.tenantId === tenant.id);
   const price = { monthly: [plan.monthly, L('/ month', '/ شهر')], yearly: [plan.yearly, L('/ year', '/ سنة')], 'one-time': [plan.oneTime, L('once', 'مرة واحدة')], installments: [plan.installments.amount, L(`× ${plan.installments.count} installments`, `× ${plan.installments.count} أقساط`)] }[model] as [number, string];
   return (
@@ -311,10 +312,10 @@ function BillingSection() {
       <Card title={L('Your Fatura plan', 'باقتك في فاتورة')}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2"><span className="text-[20px] font-semibold">{bi(lang, { en: plan.name, ar: plan.nameAr })}</span><Badge tone="accent">{tenant.cycle === 'yearly' ? L('Billed yearly', 'سنوي') : L('Billed monthly', 'شهري')}</Badge></div>
+            <div className="flex items-center gap-2"><span className="text-[20px] font-semibold">{bi(lang, { en: plan.name, ar: plan.nameAr })}</span><Badge tone="accent">{tenant.model === 'installments' ? L('Yearly in installments', 'سنوي بالتقسيط') : tenant.model === 'one-time' ? L('One-time licence', 'ترخيص دائم') : tenant.cycle === 'yearly' ? L('Billed yearly', 'سنوي') : L('Billed monthly', 'شهري')}</Badge>{tenant.status === 'trial' && <Badge tone="info">{L('Trial', 'تجريبي')}</Badge>}</div>
             <p className="text-ink-muted mt-1">{bi(lang, plan.blurb)}</p>
           </div>
-          <div className="text-end"><div className="text-[22px] font-semibold tabular">{money(tenant.cycle === 'yearly' ? plan.yearly : plan.monthly)}</div><div className="text-[12.5px] text-ink-subtle">{L('+ 14% VAT', '+ ١٤٪ ضريبة')}</div></div>
+          <div className="text-end"><div className="text-[22px] font-semibold tabular">{money(priceFor(plan, billingOf(tenant))[0])} <span className="text-[13px] font-normal text-ink-muted">{L(priceFor(plan, billingOf(tenant))[1], priceFor(plan, billingOf(tenant))[2])}</span></div><div className="text-[12.5px] text-ink-subtle">{L('+ 14% VAT', '+ ١٤٪ ضريبة')}</div></div>
         </div>
         <div className="mt-5">
           <div className="flex justify-between text-[13px] mb-1.5"><span className="text-ink-muted">{L('Documents this month', 'المستندات هذا الشهر')}</span><span className="tabular">{used} / {plan.docsPerMonth.toLocaleString()}</span></div>
@@ -337,7 +338,7 @@ function BillingSection() {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
           <span className="text-ink-muted text-[13px]">{model === 'one-time' ? L('Includes 12 months of updates and ETA schema changes; renew updates yearly at 20%.', 'يشمل ١٢ شهراً من التحديثات؛ تجديد التحديثات سنوياً بنسبة ٢٠٪.') : model === 'installments' ? L('Interest-free. Each installment is invoiced to you as a valid ETA invoice.', 'بدون فوائد. كل قسط يصدر كفاتورة إلكترونية صالحة.') : L('Cancel or switch any time.', 'يمكنك الإلغاء أو التغيير في أي وقت.')}</span>
-          <Button variant="primary" onClick={() => toast({ tone: 'ok', text: L(`Switched to ${model} billing from your next cycle.`, 'تم تغيير طريقة الدفع اعتباراً من الدورة القادمة.') })}>{L('Confirm', 'تأكيد')} · {money(price[0])} {price[1]}</Button>
+          <Button variant="primary" onClick={() => { set((x) => { const t = x.admin.tenants.find((y) => y.id === tenant.id)!; t.model = model === 'monthly' || model === 'yearly' ? 'recurring' : model; t.cycle = model === 'monthly' || model === 'yearly' ? model : undefined; }); toast({ tone: 'ok', text: L(`Switched to ${model} billing from your next cycle.`, 'تم تغيير طريقة الدفع اعتباراً من الدورة القادمة.') }); }}>{L('Confirm', 'تأكيد')} · {money(price[0])} {price[1]}</Button>
         </div>
       </Card>
       <Card title={L('Invoices from Fatura', 'فواتير فاتورة')} pad={false}>

@@ -9,6 +9,7 @@ import { useI18n } from '@/i18n';
 import { docTotal, dueInfo, paidAmount, uid, windowHoursLeft, type Doc, type PaymentRecord } from '@/store/model';
 import { useActions, useStore } from '@/store/store';
 import { InvoicePaper } from '@/components/InvoicePaper';
+import { printPage } from '@/lib/files';
 import {
   Button, Callout, Card, CopyButton, DescList, Field, Input, LinkButton, Modal, Money, Mono, Progress, Select, StatusBadge, Textarea, cx, useToast,
 } from '@/components/ui';
@@ -57,7 +58,7 @@ function Detail({ doc }: { doc: Doc }) {
     );
   }
   if (doc.status === 'Valid' && sent) {
-    headerActions.push(<Button key="print" icon={<Printer className="size-4" />} onClick={() => window.print()}>{L('PDF', 'PDF')}</Button>);
+    headerActions.push(<Button key="print" icon={<Printer className="size-4" />} onClick={() => { if (!printPage()) toast({ tone: 'info', text: L('Printing is disabled in this live preview; the deployed app opens Save as PDF.', 'الطباعة غير متاحة في هذه المعاينة؛ التطبيق المنشور يفتح الحفظ كـ PDF.') }); }}>{L('PDF', 'PDF')}</Button>);
     headerActions.push(<Button key="mail" icon={<Mail className="size-4" />} onClick={() => setDialog('email')}>{L('Send', 'إرسال')}</Button>);
     if (isInvoice && due.outstanding > 0) headerActions.push(<Button key="pay" variant="primary" icon={<Wallet className="size-4" />} onClick={() => setDialog('pay')}>{L('Record payment', 'تسجيل دفعة')}</Button>);
   }

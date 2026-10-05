@@ -4,6 +4,7 @@ import { taxType } from '@/eta/codes';
 import { bi, useI18n } from '@/i18n';
 import { computeDoc } from '@/store/model';
 import { useStore } from '@/store/store';
+import { saveTextFile } from '@/lib/files';
 import { Button, Callout, Card, Money, PageHeader, Select, Table, Td, Th, useToast } from '@/components/ui';
 
 export function Reports() {
@@ -43,8 +44,7 @@ export function Reports() {
   const label = (code: string, sub: string) => { const t = taxType(code); const s = t?.subTypes.find((x) => x.code === sub); return `${code} · ${s ? bi(lang, s) : t ? bi(lang, t) : ''}`; };
   const exportCsv = () => {
     const rows = [['direction', 'taxType', 'subType', 'base', 'tax'], ...report.out.rows.map((r) => ['output', r.taxType, r.subType, r.base.toFixed(2), r.tax.toFixed(2)]), ...report.inp.rows.map((r) => ['input', r.taxType, r.subType, r.base.toFixed(2), r.tax.toFixed(2)])];
-    const url = URL.createObjectURL(new Blob([rows.map((r) => r.join(',')).join('\n')], { type: 'text/csv' }));
-    const a = document.createElement('a'); a.href = url; a.download = `fatura-vat-${month}.csv`; a.click(); URL.revokeObjectURL(url);
+    if (!saveTextFile(`fatura-vat-${month}.csv`, rows.map((r) => r.join(',')).join('\n'))) toast({ tone: 'info', text: L('Downloads are disabled in this live preview; the deployed app saves the file.', 'التنزيل غير متاح في هذه المعاينة؛ التطبيق المنشور يحفظ الملف.') });
   };
 
   return (

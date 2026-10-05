@@ -1,6 +1,9 @@
 import { Check, ShieldCheck } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { bi } from '@/i18n';
+import { uid } from '@/store/model';
+import { priceFor, type Billing } from '@/billing/plans';
 import { useI18n } from '@/i18n';
 import { useStore } from '@/store/store';
 import { Logo } from '@/components/brand';
@@ -66,9 +69,13 @@ export function SignIn() {
 }
 
 export function SignUp() {
-  const { set } = useStore();
-  const { L } = useI18n();
+  const { db, set } = useStore();
+  const { L, lang, money } = useI18n();
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  const plan = db.admin.plans.find((p) => p.id === params.get('plan')) ?? db.admin.plans.find((p) => p.featured) ?? db.admin.plans[0];
+  const billing = (['monthly', 'yearly', 'installments', 'one-time'].includes(params.get('billing') ?? '') ? params.get('billing') : 'monthly') as Billing;
+  const [price, en, ar] = priceFor(plan, billing);
   const [f, setF] = useState({ name: '', company: '', email: '', pw: '' });
   const [agree, setAgree] = useState(false);
   const ok = f.name && f.company && /^\S+@\S+\.\S+$/.test(f.email) && f.pw.length >= 8 && agree;
@@ -76,7 +83,25 @@ export function SignUp() {
     <AuthFrame>
       <h1 className="text-[26px] font-semibold">{L('Start your free trial', 'ابدأ تجربتك المجانية')}</h1>
       <p className="mt-1 text-ink-muted">{L('14 days on ETA pre-production. No card needed.', '١٤ يوماً على بيئة الاختبار. بدون بطاقة.')}</p>
-      <form className="mt-8 space-y-4" onSubmit={(e) => { e.preventDefault(); if (!ok) return; set((x) => { x.session = { signedIn: true, onboarded: false, user: { name: f.name, email: f.email } }; x.company.name = f.company; }); nav('/onboarding'); }}>
+      <div className="mt-6 flex items-center justify-between gap-3 rounded-card border border-accent/25 bg-accent-soft/50 p-4">
+        <div>
+          <div className="text-[12px] text-ink-subtle">{L('Your plan after the trial', 'باقتك بعد التجربة')}</div>
+          <div className="font-semibold text-ink">{bi(lang, { en: plan.name, ar: plan.nameAr })} · <span className="tabular">{money(price)}</span> <span className="text-ink-muted font-normal">{L(en, ar)}</span></div>
+          <div className="text-[12px] text-ink-muted">{{ monthly: L('Billed monthly', 'شهري'), yearly: L('Billed yearly', 'سنوي'), installments: L(`Yearly licence in ${plan.installments.count} installments`, `ترخيص سنوي على ${plan.installments.count} أقساط`), 'one-time': L('One-time licence', 'ترخيص دائم') }[billing]}</div>
+        </div>
+        <Link to="/pricing" className="text-[13px] link shrink-0">{L('Change', 'تغيير')}</Link>
+      </div>
+      <form className="mt-6 space-y-4" onSubmit={(e) => {
+        e.preventDefault(); if (!ok) return;
+        const tid = uid('t');
+        set((x) => {
+          x.session = { signedIn: true, onboarded: false, user: { name: f.name, email: f.email }, tenantId: tid };
+          x.company.name = f.company;
+          x.admin.tenants.unshift({ id: tid, name: f.company, rin: '—', owner: f.email, governorate: 'Cairo', planId: plan.id, model: billing === 'monthly' || billing === 'yearly' ? 'recurring' : billing, cycle: billing === 'monthly' || billing === 'yearly' ? billing : undefined, status: 'trial', env: 'preprod', docsThisMonth: 0, invalidRate: 0, signer: 'offline', mrr: 0, createdAt: new Date().toISOString(), installmentsPaid: billing === 'installments' ? 0 : undefined });
+          x.admin.leads.unshift({ id: uid('l'), at: new Date().toISOString(), name: f.name, email: f.email, company: f.company, topic: 'sales', message: `Started a trial on ${plan.name} (${billing}).`, source: 'signup', planId: plan.id, billing, status: 'new' });
+        });
+        nav('/onboarding');
+      }}>
         <Field label={L('Your name', 'اسمك')}>{(id) => <Input id={id} autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />}</Field>
         <Field label={L('Company legal name', 'الاسم القانوني للشركة')}>{(id) => <Input id={id} autoComplete="organization" value={f.company} onChange={(e) => setF({ ...f, company: e.target.value })} />}</Field>
         <Field label={L('Work email', 'البريد')}>{(id) => <Input id={id} type="email" dir="ltr" autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />}</Field>

@@ -289,8 +289,8 @@ export function seed(): DB {
   });
 
   return {
-    version: 2,
-    session: { signedIn: true, onboarded: true, user: { name: 'Yasmine Fouad', email: 'yasmine@lawtechlabs.eg' } },
+    version: 3,
+    session: { signedIn: true, onboarded: true, user: { name: 'Yasmine Fouad', email: 'yasmine@lawtechlabs.eg' }, tenantId: 't1' },
     company: {
       name: 'Lawtech Labs Egypt LLC', nameAr: 'لوتك لابز مصر ش.ذ.م.م', rin: RIN, activityCode: '6201', email: 'billing@lawtechlabs.eg', phone: '+20 2 2461 0090',
       iban: 'EG380019000500000000263180002', bankName: 'Commercial International Bank (CIB)',
@@ -325,6 +325,13 @@ export function seed(): DB {
     ],
     admin: {
       plans, tenants, invoices, audit, api,
+      site: { banner: { on: true, tone: 'info', text: { en: 'New: installment plans and recurring invoices are live for every plan.', ar: 'جديد: خطط التقسيط والفواتير المتكررة متاحة في كل الباقات.' }, link: '/payments' } },
+      leads: [
+        { id: 'l1', at: daysAgo(0, 9), name: 'Hoda Saleh', email: 'hoda@nilegrain.example', company: 'Nile Grain Trading', topic: 'demo', message: 'We issue about 900 invoices a month from SAP B1. Need a demo of bulk submit.', source: 'contact', status: 'new', docsPerMonth: 900 },
+        { id: 'l2', at: daysAgo(1, 14), name: 'Tamer Aziz', email: 'tamer@aziz-cpa.example', company: 'Aziz & Partners CPAs', topic: 'partnership', message: 'Accounting firm with 40 clients — interested in a multi-client setup.', source: 'contact', status: 'contacted' },
+        { id: 'l3', at: daysAgo(2, 11), name: 'Rana Fathy', email: 'rana@deltacafe.example', company: 'Delta Café Group', topic: 'sales', message: '6 branches, POS e-receipts. Can we pay yearly in installments?', source: 'pricing', planId: 'scale', billing: 'installments', status: 'qualified' },
+        { id: 'l4', at: daysAgo(4, 16), name: 'Omar Gamal', email: 'omar@gamaltools.example', company: 'Gamal Tools', topic: 'sales', message: 'Started a trial on Growth.', source: 'signup', planId: 'growth', billing: 'monthly', status: 'won' },
+      ],
       users: [
         { id: 'u1', name: 'Ahmed El Gendy', email: 'aelgendy@thelawtechlabs.com', role: 'Super admin', mfa: true, lastActive: daysAgo(0, 10) },
         { id: 'u2', name: 'Nour Samir', email: 'nour@fatura.eg', role: 'Support', mfa: true, lastActive: daysAgo(0, 12) },
