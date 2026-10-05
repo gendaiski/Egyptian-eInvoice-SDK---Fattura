@@ -1,0 +1,25 @@
+# Local full stack: Postgres + Fatura.  docker compose up --build  →  http://localhost:8787
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fatura
+      POSTGRES_PASSWORD: fatura
+      POSTGRES_DB: fatura
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fatura"]
+      interval: 3s
+      retries: 20
+  app:
+    build: .
+    ports: ["8787:8787"]
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://fatura:fatura@db:5432/fatura
+      APP_SECRET: ${APP_SECRET:-change-me-change-me-change-me-change-me}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:-}
+      SEED_DEMO: ${SEED_DEMO:-true}
+volumes:
+  pgdata:

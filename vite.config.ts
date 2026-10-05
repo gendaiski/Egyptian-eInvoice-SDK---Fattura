@@ -8,6 +8,8 @@ export default defineConfig({
   build: process.env.VITE_ROUTER === 'memory'
     ? { outDir: 'dist-preview', rollupOptions: { output: { inlineDynamicImports: true } }, chunkSizeWarningLimit: 2000 }
     : { outDir: 'dist' },
+  // In development the API runs separately (npm run dev:server).
+  server: { proxy: { '/api': 'http://localhost:8787' } },
   plugins: [react()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: { environment: 'node', include: ['src/**/*.test.ts', 'server/test/**/*.test.ts'], testTimeout: 30000, hookTimeout: 60000 },

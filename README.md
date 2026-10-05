@@ -1,9 +1,17 @@
 # Fatura · فاتورة
 
 Egyptian e-invoicing SaaS built on the Egyptian Tax Authority (ETA) eInvoicing SDK.
-This repository contains the **complete front end**: the public website (15 pages), the taxpayer
-workspace, the Fatura platform admin panel, sign-in and onboarding — one app sharing one design system. A deterministic mock of the ETA
-API stands in for the backend, so every flow can be run without credentials.
+This repository contains the **whole product**:
+
+- **Front end** — the public website (15 pages), the taxpayer workspace, the Fatura platform admin panel,
+  sign-in and onboarding, one app sharing one design system.
+- **Back end** — a Node API (Hono) on Postgres: accounts and tenants, the sign → submit → poll document
+  pipeline, a real ETA HTTP client, an in-process **ETA simulator**, CAdES-BES signing, a background worker,
+  an **integration API** for ERPs with API keys, idempotency and signed webhooks.
+- **Fatura Signer** — a small agent for the PC holding the company's USB token (PKCS#11), in `signer-agent/`.
+
+The front end runs in two modes: against the server (`VITE_DATA=api`, the default for deployments) or as a
+self-contained browser demo with a deterministic ETA mock (the live preview artifact).
 
 - Bilingual **English / Arabic** with full RTL, light and dark themes, responsive down to 360 px.
 - Three ways to get paid: **one payment**, **recurring**, and **installments**. ETA always
@@ -13,17 +21,42 @@ API stands in for the backend, so every flow can be run without credentials.
 
 ## Run it
 
+Full stack (API + front end + worker, embedded Postgres, demo data):
+
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm test           # unit tests for tax maths, serialization, validation, schedules
-npm run build      # typecheck + production build
-npm run build:preview  # single-file live preview (dist-preview/fatura.html)
+npm run build:server && VITE_DATA=api npx vite build
+npm run start                    # http://localhost:8787
 ```
 
-Demo entry points: `/` (marketing + pricing), `/signin`, `/signup` → `/onboarding`,
-`/app` (taxpayer workspace), `/admin` (platform admin). Settings → Data → *Reset demo data*
-restores the sample company. State persists in `localStorage` for the demo only.
+Development: `npm run dev:server` (API on :8787) and `VITE_DATA=api npm run dev` (Vite on :5173 proxies /api).
+With Docker and a real Postgres: `docker compose up --build`. Configuration: see `.env.example`.
+
+| Test login | Password | Opens |
+|---|---|---|
+| `demo@fatura.eg` | `fatura-demo-2026` | Taxpayer workspace (demo company, ETA simulator, test certificate) |
+| `admin@fatura.eg` | `fatura-admin-2026` | Fatura admin panel |
+
+New sign-ups get their own tenant on the ETA simulator; switch to pre-production in
+Settings → ETA connection once you have ETA ERP credentials.
+
+```bash
+npm test               # 41 tests: tax maths, serialization, validation, schedules, API, signing, ETA client
+npm run typecheck
+npm run build:preview  # single-file browser-only demo (dist-preview/fatura.html)
+npm run build:vercel   # Vercel Build Output (.vercel/output)
+npm run build:signer   # bundles Fatura Signer (signer-agent/dist/fatura-signer.mjs)
+```
+
+## Deploy
+
+- **Vercel** — `vercel.json` builds `npm run build:vercel`: static SPA + one Node function for `/api` + a daily cron.
+  Set `APP_SECRET`, `APP_ENCRYPTION_KEY`, `CRON_SECRET` and **`DATABASE_URL`** (Neon or any Postgres).
+  Without `DATABASE_URL` each function instance uses its own temporary embedded database, which is only good
+  for a quick test: data resets on cold starts and may differ between instances.
+- **Any container host** — the `Dockerfile` runs API, front end and worker in one process (`PORT`, `DATABASE_URL`).
+
+Integrators: see `docs/API.md` (REST API, webhooks, signer protocol).
 
 ## What is in the box
 
@@ -54,7 +87,16 @@ docs/
   DESIGN-SYSTEM.md     Nile Ledger v2: tokens, type, components, voice (live at /design-system)
   ETA-SDK-MAPPING.md   every SDK operation and rule → where it lives in the product
   UX-FLOWS.md          the core user journeys and the decisions behind them
-  ARCHITECTURE.md      the production backend this front end expects
+  ARCHITECTURE.md      architecture of the production system
+  API.md               integration API, webhooks, signer protocol
+server/
+  src/app.ts           Hono app (/api): routes/, services/ (documents, webhooks, worker)
+  src/eta/             ETA HTTP client (token cache, retries) and the in-process ETA simulator
+  src/signing/         CAdES-BES signer, test certificates, signing jobs
+  src/db/              Postgres / PGlite client, migrations, seed
+  test/                API, signing and ETA-client tests
+  node.ts · vercel.ts  entry points
+signer-agent/          Fatura Signer for USB tokens (PKCS#11) or .p12 files
 ```
 
 ## How the website connects to the system
@@ -67,8 +109,13 @@ docs/
 
 ## Status and caveats
 
-- The front end is complete. The backend is specified in `docs/ARCHITECTURE.md` but not built yet.
-  `src/eta/client.ts` is the contract to implement server-side.
+- Front end and back end are complete and tested end to end (browser → API → signing → ETA simulator → Valid),
+  on both embedded Postgres and Postgres 16.
+- Going live with ETA needs things only the taxpayer can supply: ERP client credentials from the ETA portal,
+  a signing certificate on a USB token (Egypt Trust, MCDR, Fixed Misr) paired through Fatura Signer, and
+  a first round of test submissions on ETA pre-production to confirm field-level rules.
+- Not built: card/payment-gateway collection for Fatura's own subscriptions (billing is tracked and invoiced,
+  payments are recorded manually), outbound email delivery (hook point: `autoEmail`), and POS e-receipt submission.
 - `sdk.invoicing.eta.gov.eg` was not reachable from the build environment. The spec here was
   assembled from the SDK's published structure and needs confirming against the live SDK.
   Items to verify are listed at the end of `docs/ETA-SDK-MAPPING.md`.
