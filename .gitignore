@@ -6,3 +6,6 @@ dist
 !.env.example
 *.tsbuildinfo
 dist-preview
+dist-server
+signer-agent/dist
+.data

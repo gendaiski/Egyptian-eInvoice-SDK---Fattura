@@ -10,5 +10,5 @@ export default defineConfig({
     : { outDir: 'dist' },
   plugins: [react()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  test: { environment: 'node', include: ['src/**/*.test.ts'] },
+  test: { environment: 'node', include: ['src/**/*.test.ts', 'server/test/**/*.test.ts'], testTimeout: 30000, hookTimeout: 60000 },
 });

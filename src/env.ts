@@ -13,3 +13,10 @@ export function initialPathFromHash(): string {
     return '/' + t.split('.').join('/');
   } catch { return '/'; }
 }
+
+/**
+ * Data source. `local`: the in-browser demo backend (no server needed, used by the live preview).
+ * `api`: the Fatura API server (deployed builds). Set VITE_DATA=api at build time.
+ */
+export const DATA_MODE: 'local' | 'api' = import.meta.env.VITE_DATA === 'api' ? 'api' : 'local';
+export const API_BASE: string = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
