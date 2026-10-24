@@ -8,6 +8,8 @@ This repository contains the **whole product**:
 > [v2 source audit](docs/V2-SOURCE-AUDIT.md) for verified scope and blockers. The existing
 > production deployment remains on its original branch.
 
+Compare the original branch with the v2 review build in the [Fattura v1–v2 comparison table](docs/V1-V2-COMPARISON.md).
+
 - **Front end** — the public website (15 pages), the taxpayer workspace, the Fatura platform admin panel,
   sign-in and onboarding, one app sharing one design system.
 - **Back end** — a Node API (Hono) on Postgres: accounts and tenants, the sign → submit → poll document

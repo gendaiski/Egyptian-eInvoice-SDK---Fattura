@@ -2,6 +2,8 @@
 
 **Status: PARTIAL.** The implemented local workflows pass, while real ETA pre-production, signing hardware and cloud persistence remain unverified or unconfigured. The original Fatura branch and its deployed production site were not changed.
 
+For a source-backed feature comparison with the original branch, see the [v1–v2 comparison table](V1-V2-COMPARISON.md).
+
 ## Two separate systems
 
 | System | Location | Local address | Data and account boundary |
