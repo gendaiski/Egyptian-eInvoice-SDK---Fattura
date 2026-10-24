@@ -45,6 +45,7 @@ export const S = {
       payment_plan: z.union([plan, z.object({ kind: z.literal('installments'), count: z.number().int(), down_payment_pct: z.number().optional(), frequency: frequency.optional() })]).optional(),
       branch: z.string().optional(), notes: z.string().optional(), po_ref: z.string().optional(), issued_at: z.string().optional(),
       submit: z.boolean().default(false),
+      confirm_production: z.boolean().default(false),
     }),
   },
 };

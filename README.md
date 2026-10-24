@@ -3,6 +3,12 @@
 Egyptian e-invoicing SaaS built on the Egyptian Tax Authority (ETA) eInvoicing SDK.
 This repository contains the **whole product**:
 
+> **Fatura v2 review branch:** `codex/fattura-egypt-v2` makes production ETA submissions
+> opt-in at both server and request level. A fully separate M&A application lives in
+> [ma-system/](ma-system/README.md), with its own server, data and UI. See the
+> [v2 source audit](docs/V2-SOURCE-AUDIT.md) for verified scope and blockers. The existing
+> production deployment remains on its original branch.
+
 - **Front end** — the public website (15 pages), the taxpayer workspace, the Fatura platform admin panel,
   sign-in and onboarding, one app sharing one design system.
 - **Back end** — a Node API (Hono) on Postgres: accounts and tenants, the sign → submit → poll document
@@ -29,6 +35,17 @@ npm run build:server && VITE_DATA=api npx vite build
 npm run start                    # http://localhost:8787
 ```
 
+For an independent Fatura v2 local review, use a fresh data directory rather than the existing `.data`:
+
+```bash
+PGLITE_DIR=./.data-v2-review PORT=8788 npm run start
+```
+
+The M&A Diligence System starts separately at `http://127.0.0.1:8797/` after
+`cd ma-system && npm ci && npm start`. It does not share Fatura routes, credentials,
+database, design system or process. Its source presentation is at
+`http://127.0.0.1:8797/presentation.html`.
+
 Development: `npm run dev:server` (API on :8787) and `VITE_DATA=api npm run dev` (Vite on :5173 proxies /api).
 With Docker and a real Postgres: `docker compose up --build`. Configuration: see `.env.example`.
 
@@ -41,7 +58,7 @@ New sign-ups get their own tenant on the ETA simulator; switch to pre-production
 Settings → ETA connection once you have ETA ERP credentials.
 
 ```bash
-npm test               # 41 tests: tax maths, serialization, validation, schedules, API, signing, ETA client
+npm test               # 42 tests: tax maths, serialization, validation, schedules, API, signing, ETA client, production guard
 npm run typecheck
 npm run build:preview  # single-file browser-only demo with a guided test-scenario panel (dist-preview/fatura.html)
 npm run build:vercel   # Vercel Build Output (.vercel/output)

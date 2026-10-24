@@ -18,9 +18,9 @@ const ip = (c: Context) => c.req.header('x-forwarded-for')?.split(',')[0]?.trim(
 /* Documents */
 actions.post('/documents/submit', async (c) => {
   const u = requireTenant(c, { write: true });
-  const { ids } = await body(c);
+  const { ids, confirmProduction } = await body(c);
   if (!Array.isArray(ids) || !ids.length || ids.length > 100) throw new HttpError(422, 'invalid_ids', 'Send 1–100 document ids.');
-  const res = await submitDocuments(await getDb(), u.tenantId, ids.map(String), u.name);
+  const res = await submitDocuments(await getDb(), u.tenantId, ids.map(String), u.name, confirmProduction === true);
   await repo(await getDb()).audit(u.email, 'document.submit', `${ids.length} document(s)`, u.tenantId, ip(c));
   return c.json(res);
 });

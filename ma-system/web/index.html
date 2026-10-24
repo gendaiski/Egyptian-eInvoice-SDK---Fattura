@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>Meridian · M&A Diligence</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div id="auth" class="auth-shell hidden">
+    <div class="auth-art"><div class="brand brand-large"><span class="brand-mark">M</span><span>Meridian <small>DILIGENCE SYSTEM</small></span></div><div class="auth-statement">See the whole deal.<br><em>Trace every conclusion.</em></div><p>Confidential deal rooms, linked evidence and an accountable review trail in one independent workspace.</p><a href="/presentation.html" target="_blank" rel="noopener noreferrer" class="text-link">Explore the reference presentation ↗</a><div class="orb orb-one"></div><div class="orb orb-two"></div></div>
+    <div class="auth-form-wrap"><form id="auth-form" class="auth-card"><span class="eyebrow">SECURE WORKSPACE</span><h1 id="auth-title">Sign in</h1><p id="auth-subtitle">Enter your team credentials to continue.</p><div id="setup-name" class="hidden"><label for="name">Your name</label><input id="name" autocomplete="name" minlength="2"></div><label for="email">Work email</label><input id="email" type="email" autocomplete="email" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="10" required><div id="setup-token-row" class="hidden"><label for="setup-token">Remote setup token</label><input id="setup-token" type="password" autocomplete="off"><small>Only required when first-time setup runs on a remote server.</small></div><button class="button primary full" type="submit" id="auth-submit">Sign in</button><div id="auth-error" class="form-error" role="alert"></div></form></div>
+  </div>
+  <div id="workspace" class="shell hidden">
+    <aside class="sidebar"><div class="brand"><span class="brand-mark">M</span><span>Meridian <small>DILIGENCE SYSTEM</small></span></div><div class="nav-label">WORKSPACE</div><button class="nav-item active" data-view="dashboard"><span class="icon">◧</span> Overview</button><button class="nav-item" data-view="deal"><span class="icon">◇</span> Deal room</button><button class="nav-item" data-view="team"><span class="icon">♧</span> Team & access</button><div class="nav-label nav-label-second">REFERENCE</div><a class="nav-item" href="/presentation.html" target="_blank" rel="noopener noreferrer"><span class="icon">↗</span> Source presentation</a><div class="sidebar-foot"><div class="security-dot"></div><div>Private workspace<small>Files encrypted at rest</small></div></div></aside>
+    <div class="main-shell"><header class="topbar"><button id="mobile-menu" class="icon-button mobile-only" aria-label="Open menu">☰</button><div class="breadcrumb">MERIDIAN <span>/</span> <strong id="breadcrumb-page">Overview</strong></div><div class="top-actions"><span class="workspace-status"><i></i> Local workspace</span><button id="theme-toggle" class="icon-button" title="Toggle light and dark theme" aria-label="Toggle light and dark theme">☾</button><span id="user-chip" class="user-chip"></span><button id="logout" class="button subtle small">Sign out</button></div></header><main id="content" class="content"></main></div>
+  </div>
+  <div id="toast" class="toast hidden" role="status"></div>
+</body>
+</html>

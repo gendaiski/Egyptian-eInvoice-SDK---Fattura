@@ -10,7 +10,7 @@ const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? 'playwright')
 const B = (process.env.BASE_URL ?? 'http://localhost:8787').replace(/\/$/, '');
 const out = 'e2e/out';
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch();
+const browser = await chromium.launch(process.env.CHROMIUM_EXECUTABLE ? { executablePath: process.env.CHROMIUM_EXECUTABLE } : {});
 const errs = [];
 const step = (s) => console.log('•', s);
 const fails = [];

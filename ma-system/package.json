@@ -1,0 +1,19 @@
+{
+  "name": "ma-diligence-system",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@hono/node-server": "2.1.3",
+    "hono": "4.13.13",
+    "jose": "6.2.12",
+    "pg": "8.23.1",
+    "zod": "4.6.5"
+  }
+}

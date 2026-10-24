@@ -107,3 +107,11 @@ signature. The server verifies it against the tenant's certificate before submit
 `POST /api/cron/tick` (header `Authorization: Bearer $CRON_SECRET`) runs recurring invoices, polls ETA for
 submitted documents, refreshes code requests, syncs received documents and delivers webhooks.
 The Node server runs it every minute; on Vercel it is a cron job.
+## Fatura v2 production submission gate
+
+To submit to **production ETA**, the server operator must set
+`ETA_PRODUCTION_SUBMISSION_ENABLED=true`, and each submit request must explicitly
+include `confirmProduction: true` (ERP API: `confirm_production: true`). Both gates
+are independently enforced. Simulator and pre-production flows are unchanged.
+
+The independent M&A application has its own [API and setup guide](../ma-system/README.md).
