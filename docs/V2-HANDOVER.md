@@ -10,7 +10,7 @@
 | Meridian M&A Diligence System | [`ma-system/`](../ma-system/README.md) | `http://127.0.0.1:8797/` | Own Hono server, PGlite/Postgres database, first-run owner account, session cookie and encryption key. No Fatura route, user or DB dependency. |
 | Upstream due-diligence presentation | `ma-system/public/presentation.html` | `http://127.0.0.1:8797/presentation.html` | Original interactive 23-slide source page and its two referenced images, with Apache-2.0 licence/notice. |
 
-These addresses are local to the computer running each server. The cloud test instance's localhost is **not** an address on the user's Windows computer. There is no verified public deployment for this branch. For local review on Windows, clone/checkout the review branch, run `npm ci` in the root for Fatura and separately in `ma-system` for Meridian. Start each in its own terminal. Follow the [M&A start guide](../ma-system/README.md); no Docker is required.
+These addresses are local to the computer running each server. The cloud test instance's localhost is **not** an address on the user's Windows computer. Vercel built a [Fatura v2 branch preview](https://fatura-einvoice-git-codex-fattura-egypt-v2-gendaiski.vercel.app), but unauthenticated HTTP requests redirect to Vercel sign-in; its application behaviour and persistence on that host remain **NOT VERIFIED**. Meridian has no public deployment. For local review on Windows, clone/checkout the review branch, run `npm ci` in the root for Fatura and separately in `ma-system` for Meridian. Start each in its own terminal. Follow the [M&A start guide](../ma-system/README.md); no Docker is required.
 
 ## What changed
 
@@ -30,7 +30,8 @@ These addresses are local to the computer running each server. The cloud test in
 | Source presentation | PASS for repository source copy | `GET /presentation.html` and both images returned 200; Chromium rendered 23 slides without page errors. Desktop and mobile inspected. |
 | Current official ETA SDK and real pre-production submission | NOT VERIFIED | Official site/services returned proxy HTTP 403; no authorised ERP credential or signing token is configured. |
 | Exact match to current live presentation site | NOT VERIFIED | The live host returned proxy HTTP 403. The upstream repository version, not the current live host, was the accessible source. |
-| Public cloud deployment and real-data persistence | NOT VERIFIED | No durable Postgres, HTTPS host, or public app URL has been configured for Meridian. The existing Fatura Vercel deployment must not be used for confidential files with temporary PGlite. |
+| Fatura branch preview | PARTIAL | Vercel status check passed and branch preview URL was issued; anonymous request redirects to Vercel login, so browser flow and data persistence there were not verified. |
+| Meridian public deployment and real-data persistence | NOT VERIFIED | No durable Postgres, HTTPS host, or public app URL has been configured. The existing Fatura Vercel deployment must not be used for confidential files with temporary PGlite. |
 
 Browser evidence: [Meridian desktop dark](v2-evidence/meridian-desktop.png), [Meridian team/mobile light](v2-evidence/meridian-mobile-light.png), and [source presentation on mobile](v2-evidence/presentation-mobile.png). These are screenshots of actual local browser renders; the screenshots are not substitutes for running the system.
 
