@@ -114,4 +114,4 @@ To submit to **production ETA**, the server operator must set
 include `confirmProduction: true` (ERP API: `confirm_production: true`). Both gates
 are independently enforced. Simulator and pre-production flows are unchanged.
 
-The independent M&A application has its own [API and setup guide](../ma-system/README.md).
+The independent M&A application has its own [API and setup guide](https://github.com/gendaiski/Sandbox-2/blob/codex/native-landings-20261023/systems/meridian-ma-diligence/README.md) in Sandbox-2.

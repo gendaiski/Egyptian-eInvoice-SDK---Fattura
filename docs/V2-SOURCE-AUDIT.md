@@ -1,6 +1,6 @@
 # Fatura v2 source audit and verification boundary
 
-This branch is a separate review version of the existing Fatura product. The M&A Diligence System is a separate application in `ma-system/` with its own Hono server, browser UI, PGlite/Postgres database, accounts, encryption keys and startup. It does not share Fatura routes or credentials and does not claim to run the other applications below.
+This branch is a separate review version of the existing Fatura product. The [Meridian M&A Diligence System](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is a separate application in the Sandbox-2 systems repository. It has its own Hono server, browser UI, PGlite/Postgres database, accounts, encryption keys and startup. It does not share Fatura routes or credentials.
 
 ## ETA references
 
@@ -20,7 +20,7 @@ The [official ETA SDK](https://sdk.invoicing.eta.gov.eg/) and the live productio
 
 | Source and inspected revision | Actual type and capability | Licence / decision |
 |---|---|---|
-| [due-diligence-agents](https://github.com/zoharbabin/due-diligence-agents) `6950efd` | Python CLI with 13 cross-domain agents, Claude Agent SDK, data-room reports; requires Python 3.12 and a paid model account | Apache-2.0. The complete source presentation and its two local images are copied byte-for-byte under `ma-system/public/`, with licence and notice. Agent execution is **not** integrated. |
+| [due-diligence-agents](https://github.com/zoharbabin/due-diligence-agents) `6950efd` | Python CLI with 13 cross-domain agents, Claude Agent SDK, data-room reports; requires Python 3.12 and a paid model account | Apache-2.0. The complete source presentation and its two local images are copied byte-for-byte under Meridian's `public/`, with licence and notice. Agent execution is **not** integrated. |
 | [claude-legal-skill](https://github.com/evolsb/claude-legal-skill) `bca0d2e` | Legal-review skill for agent hosts | MIT. Not an independent app or reliable legal conclusion; inspected, no global skill installation. |
 | [awesome-private-equity](https://github.com/iamtorgo/awesome-private-equity) `4654c60` | Curated private-equity links | CC0-1.0. Reference material only. |
 | [deal-room-api](https://github.com/mmmihaeel/deal-room-api) `3b49a11` | Laravel API for deal metadata, access and audit; README expressly excludes binary document storage | MIT. Architectural reference; the standalone M&A app encrypts document content in its own database. |

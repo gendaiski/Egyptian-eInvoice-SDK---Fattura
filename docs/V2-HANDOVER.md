@@ -1,16 +1,16 @@
-# Fatura v2 and independent M&A system — review handover
+# Fatura v2 — review handover
 
-**Status: PARTIAL.** The implemented local workflows pass, while real ETA pre-production, signing hardware, cloud persistence and live reference-site comparison remain unverified or unconfigured. The original Fatura branch and its deployed production site were not changed.
+**Status: PARTIAL.** The implemented local workflows pass, while real ETA pre-production, signing hardware and cloud persistence remain unverified or unconfigured. The original Fatura branch and its deployed production site were not changed.
 
 ## Two separate systems
 
 | System | Location | Local address | Data and account boundary |
 |---|---|---|---|
 | Fatura v2 | repository root | `http://127.0.0.1:8788/` when started with `PORT=8788` | Existing Fatura API, taxpayer accounts and DB; review with a separate `PGLITE_DIR`. |
-| Meridian M&A Diligence System | [`ma-system/`](../ma-system/README.md) | `http://127.0.0.1:8797/` | Own Hono server, PGlite/Postgres database, first-run owner account, session cookie and encryption key. No Fatura route, user or DB dependency. |
-| Upstream due-diligence presentation | `ma-system/public/presentation.html` | `http://127.0.0.1:8797/presentation.html` | Original interactive 23-slide source page and its two referenced images, with Apache-2.0 licence/notice. |
+| Meridian M&A Diligence System | [Separate Sandbox-2 system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) | `http://127.0.0.1:8797/` when started separately | Own Hono server, PGlite/Postgres database, first-run owner account, session cookie and encryption key. No Fatura route, user or DB dependency. |
+| Upstream due-diligence presentation | Meridian's `public/presentation.html` | `http://127.0.0.1:8797/presentation.html` when started | Original interactive 23-slide source page and its two referenced images, with Apache-2.0 licence/notice. |
 
-These addresses are local to the computer running each server. The cloud test instance's localhost is **not** an address on the user's Windows computer. Vercel built a [Fatura v2 branch preview](https://fatura-einvoice-git-codex-fattura-egypt-v2-gendaiski.vercel.app), but unauthenticated HTTP requests redirect to Vercel sign-in; its application behaviour and persistence on that host remain **NOT VERIFIED**. Meridian has no public deployment. For local review on Windows, clone/checkout the review branch, run `npm ci` in the root for Fatura and separately in `ma-system` for Meridian. Start each in its own terminal. Follow the [M&A start guide](../ma-system/README.md); no Docker is required.
+These addresses are local to the computer running each server. The cloud test instance's localhost is **not** an address on the user's Windows computer. Vercel built a [Fatura v2 branch preview](https://fatura-einvoice-git-codex-fattura-egypt-v2-gendaiski.vercel.app), but unauthenticated HTTP requests redirect to Vercel sign-in; its application behaviour and persistence on that host remain **NOT VERIFIED**. Meridian has no public deployment. For local review on Windows, clone/checkout the Fatura review branch and separately clone/checkout [Sandbox-2's Meridian branch](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence). Run `npm ci` and start each app in its own terminal. Follow the [M&A start guide](https://github.com/gendaiski/Sandbox-2/blob/codex/native-landings-20261023/systems/meridian-ma-diligence/README.md); no Docker is required.
 
 ## What changed
 
@@ -33,7 +33,7 @@ These addresses are local to the computer running each server. The cloud test in
 | Fatura branch preview | PARTIAL | Vercel status check passed and branch preview URL was issued; anonymous request redirects to Vercel login, so browser flow and data persistence there were not verified. |
 | Meridian public deployment and real-data persistence | NOT VERIFIED | No durable Postgres, HTTPS host, or public app URL has been configured. The existing Fatura Vercel deployment must not be used for confidential files with temporary PGlite. |
 
-Browser evidence: [Meridian desktop dark](v2-evidence/meridian-desktop.png), [Meridian team/mobile light](v2-evidence/meridian-mobile-light.png), and [source presentation on mobile](v2-evidence/presentation-mobile.png). These are screenshots of actual local browser renders; the screenshots are not substitutes for running the system.
+Browser evidence lives in [Meridian's own handover](https://github.com/gendaiski/Sandbox-2/blob/codex/native-landings-20261023/systems/meridian-ma-diligence/docs/HANDOVER.md). These are screenshots of actual local browser renders; the screenshots are not substitutes for running the system.
 
 ## Required before real data or production ETA
 

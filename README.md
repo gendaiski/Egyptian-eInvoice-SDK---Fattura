@@ -4,8 +4,7 @@ Egyptian e-invoicing SaaS built on the Egyptian Tax Authority (ETA) eInvoicing S
 This repository contains the **whole product**:
 
 > **Fatura v2 review branch:** `codex/fattura-egypt-v2` makes production ETA submissions
-> opt-in at both server and request level. A fully separate M&A application lives in
-> [ma-system/](ma-system/README.md), with its own server, data and UI. See the
+> opt-in at both server and request level. The independent [Meridian M&A system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is reviewed in Sandbox-2, with its own server, data and UI. See the
 > [v2 source audit](docs/V2-SOURCE-AUDIT.md) for verified scope and blockers. The existing
 > production deployment remains on its original branch.
 
@@ -41,10 +40,7 @@ For an independent Fatura v2 local review, use a fresh data directory rather tha
 PGLITE_DIR=./.data-v2-review PORT=8788 npm run start
 ```
 
-The M&A Diligence System starts separately at `http://127.0.0.1:8797/` after
-`cd ma-system && npm ci && npm start`. It does not share Fatura routes, credentials,
-database, design system or process. Its source presentation is at
-`http://127.0.0.1:8797/presentation.html`.
+The independent [Meridian M&A system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is reviewed separately in Sandbox-2. It does not share Fatura routes, credentials, database, design system or process.
 
 Development: `npm run dev:server` (API on :8787) and `VITE_DATA=api npm run dev` (Vite on :5173 proxies /api).
 With Docker and a real Postgres: `docker compose up --build`. Configuration: see `.env.example`.
