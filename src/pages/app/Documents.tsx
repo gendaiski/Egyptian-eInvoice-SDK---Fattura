@@ -129,7 +129,7 @@ export function Documents() {
             </Button>
           </div>
         )}
-        {signerOffline && tab === 'Draft' && <div className="px-4 pb-3"><Callout tone="warn" title={L('Signing agent offline', 'وكيل التوقيع غير متصل')}>{L('Plug in the USB token and start Fatura Signer to submit.', 'وصّل التوكن وشغّل برنامج فاتورة للتوقيع.')}</Callout></div>}
+        {signerOffline && tab === 'Draft' && <div className="px-4 pb-3"><Callout tone="warn" title={L('Signing agent offline', 'وكيل التوقيع غير متصل')}>{L('Plug in the USB token and start Fattura Signer to submit.', 'وصّل التوكن وشغّل برنامج فاتورة للتوقيع.')}</Callout></div>}
 
         {rows.length === 0 ? (
           <EmptyState icon={<FileText className="size-5" />} title={q || type || pay || range !== 'all' ? L('No documents match these filters', 'لا توجد مستندات مطابقة') : L('No documents here yet', 'لا توجد مستندات بعد')}

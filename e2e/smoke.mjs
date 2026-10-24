@@ -22,8 +22,12 @@ async function newPage() {
   page.on('response', (r) => { if (r.url().includes('/api/') && r.status() >= 400) errs.push(`${r.status()} ${r.request().method()} ${r.url()}`); });
   return page;
 }
-// 1. Tenant owner signs in, creates and submits an invoice, sees it go Valid.
 let page = await newPage();
+await page.goto(B + '/', { waitUntil: 'networkidle' });
+check('signed-out public home renders its sample invoice',
+  /Egyptian e.invoicing, done properly/i.test(await page.locator('h1').innerText()) &&
+  await page.getByLabel('A sample invoice produced by Fattura in the simulator').count() === 1);
+// 1. Tenant owner signs in, creates and submits an invoice, sees it go Valid.
 await page.goto(`${B}/signin`, { waitUntil: 'networkidle' });
 await page.getByLabel('Work email').fill('demo@fatura.eg');
 await page.getByLabel('Password').fill('fatura-demo-2026');

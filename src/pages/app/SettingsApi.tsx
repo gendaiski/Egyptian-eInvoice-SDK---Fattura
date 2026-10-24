@@ -1,5 +1,5 @@
 /**
- * Settings that only exist against the real Fatura server (VITE_DATA=api):
+ * Settings that only exist against the real Fattura server (VITE_DATA=api):
  * signer-agent pairing, integration API keys and webhooks. Secrets returned by
  * the server are shown exactly once.
  */
@@ -51,7 +51,7 @@ export function SignerAgents() {
   const live = rows?.filter((r) => !r.revoked) ?? [];
   return (
     <Card title={L('Paired signers', 'أجهزة التوقيع المقترنة')} pad={false}
-      subtitle={L('Each PC running Fatura Signer with a USB token gets its own token. Revoke a token when a PC is retired.', 'كل جهاز يشغّل برنامج التوقيع يحصل على رمز خاص. ألغِ الرمز عند الاستغناء عن الجهاز.')}
+      subtitle={L('Each PC running Fattura Signer with a USB token gets its own token. Revoke a token when a PC is retired.', 'كل جهاز يشغّل برنامج التوقيع يحصل على رمز خاص. ألغِ الرمز عند الاستغناء عن الجهاز.')}
       action={<Button size="sm" icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{L('Pair a signer', 'إقران جهاز')}</Button>}>
       {rows && !live.length ? <EmptyState icon={<Usb />} title={L('No signer paired yet', 'لا يوجد جهاز مقترن')} body={L('Pair the PC that holds your USB token to sign documents for ETA.', 'اقرن الجهاز المتصل بالتوكن لتوقيع المستندات.')} /> : (
         <Table>
@@ -66,15 +66,15 @@ export function SignerAgents() {
           ))}</tbody>
         </Table>
       )}
-      <Modal open={open} onClose={close} title={L('Pair Fatura Signer', 'إقران برنامج التوقيع')}
+      <Modal open={open} onClose={close} title={L('Pair Fattura Signer', 'إقران برنامج التوقيع')}
         footer={issued ? <Button variant="primary" onClick={close}>{L('Done', 'تم')}</Button> : <><Button onClick={close}>{L('Cancel', 'إلغاء')}</Button><Button variant="primary" loading={busy} disabled={!name.trim()} onClick={pair}>{L('Create token', 'إنشاء الرمز')}</Button></>}>
         {issued ? (
           <div className="space-y-4">
             <SecretOnce value={issued.token} note={L('Copy this token now — it is shown only once.', 'انسخ الرمز الآن — يظهر مرة واحدة فقط.')} />
             <div>
               <span className="label">{L('Run on the PC with the token', 'شغّل على الجهاز المتصل بالتوكن')}</span>
-              <pre className="rounded-md bg-ink text-canvas p-3 text-[12px] overflow-x-auto" dir="ltr">{`FATURA_URL=${serverOrigin()} \\
-FATURA_AGENT_TOKEN=${issued.token.slice(0, 14)}… \\
+              <pre className="rounded-md bg-ink text-canvas p-3 text-[12px] overflow-x-auto" dir="ltr">{`FATTURA_URL=${serverOrigin()} \\
+FATTURA_AGENT_TOKEN=${issued.token.slice(0, 14)}… \\
 SIGNER=pkcs11 PKCS11_LIB=/path/to/eps2003csp11.dll PKCS11_PIN=•••• \\
 npx tsx signer-agent/agent.ts`}</pre>
             </div>
@@ -102,13 +102,13 @@ export function DevelopersSection() {
     try { const r = await api<{ key: string; note: string }>('POST', '/actions/api-keys', { name: keyName || 'ERP' }); setIssued({ value: r.key, note: L('Copy this API key now — it is shown only once.', 'انسخ المفتاح الآن — يظهر مرة واحدة فقط.') }); setKeyName(''); keys.load(); } catch (e) { reportApiError(e); }
   };
   const createHook = async () => {
-    try { const r = await api<{ secret: string }>('POST', '/actions/webhooks', { url: hookUrl }); setIssued({ value: r.secret, note: L('Signing secret for X-Fatura-Signature — shown only once.', 'سر التحقق من X-Fatura-Signature — يظهر مرة واحدة فقط.') }); setHookUrl(''); hooks.load(); } catch (e) { reportApiError(e); }
+    try { const r = await api<{ secret: string }>('POST', '/actions/webhooks', { url: hookUrl }); setIssued({ value: r.secret, note: L('Signing secret for X-Fattura-Signature — shown only once.', 'سر التحقق من X-Fattura-Signature — يظهر مرة واحدة فقط.') }); setHookUrl(''); hooks.load(); } catch (e) { reportApiError(e); }
   };
   const del = async (path: string, after: () => void) => { try { await api('DELETE', path); after(); toast({ tone: 'ok', text: L('Removed.', 'تم الحذف.') }); } catch (e) { reportApiError(e); } };
   return (
     <>
       <Card title={L('API keys', 'مفاتيح الواجهة البرمجية')} pad={false}
-        subtitle={<>{L('Let your ERP create and submit documents through the Fatura API:', 'اسمح لنظامك بإنشاء وإرسال المستندات عبر واجهة فاتورة:')} <Mono>{serverOrigin()}/api/v1/ext</Mono></>}>
+        subtitle={<>{L('Let your ERP create and submit documents through the Fattura API:', 'اسمح لنظامك بإنشاء وإرسال المستندات عبر واجهة فاتورة:')} <Mono>{serverOrigin()}/api/v1/ext</Mono></>}>
         <div className="flex flex-wrap gap-2 p-4 border-b border-line">
           <Input className="max-w-xs" placeholder={L('Key name, e.g. Odoo production', 'اسم المفتاح')} value={keyName} onChange={(e) => setKeyName(e.target.value)} aria-label={L('Key name', 'اسم المفتاح')} />
           <Button variant="primary" icon={<KeyRound className="size-4" />} onClick={createKey}>{L('Create key', 'إنشاء مفتاح')}</Button>
@@ -126,7 +126,7 @@ export function DevelopersSection() {
         </Table>
       </Card>
       <Card title={L('Webhooks', 'الإشعارات الآلية (Webhooks)')} pad={false}
-        subtitle={L('Fatura POSTs document.validated, document.invalid, document.cancelled, received.created and more to your HTTPS endpoint, signed with HMAC-SHA256.', 'ترسل فاتورة أحداث المستندات إلى عنوانك موقّعة بـ HMAC-SHA256.')}>
+        subtitle={L('Fattura POSTs document.validated, document.invalid, document.cancelled, received.created and more to your HTTPS endpoint, signed with HMAC-SHA256.', 'ترسل فاتورة أحداث المستندات إلى عنوانك موقّعة بـ HMAC-SHA256.')}>
         <div className="flex flex-wrap gap-2 p-4 border-b border-line">
           <Input className="max-w-md" dir="ltr" placeholder="https://erp.example.com/fatura/webhook" value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} aria-label={L('Endpoint URL', 'عنوان الاستقبال')} />
           <Button variant="primary" icon={<Webhook className="size-4" />} disabled={!/^https:\/\/\S+/.test(hookUrl)} onClick={createHook}>{L('Add endpoint', 'إضافة عنوان')}</Button>

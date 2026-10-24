@@ -1,4 +1,4 @@
-# Nile Ledger — Fatura design system v2
+# Nile Ledger — Fattura design system v2
 
 The live reference is the `/design-system` page: every swatch, type sample and component there is
 the real component in the current theme and language. This file records the decisions.

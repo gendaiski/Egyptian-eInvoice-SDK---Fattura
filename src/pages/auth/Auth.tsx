@@ -64,7 +64,7 @@ export function SignIn() {
   };
   return (
     <AuthFrame>
-      <h1 className="text-[26px] font-semibold">{step === 'creds' ? L('Sign in to Fatura', 'تسجيل الدخول إلى فاتورة') : L('Two-step verification', 'التحقق بخطوتين')}</h1>
+      <h1 className="text-[26px] font-semibold">{step === 'creds' ? L('Sign in to Fattura', 'تسجيل الدخول إلى فاتورة') : L('Two-step verification', 'التحقق بخطوتين')}</h1>
       <p className="mt-1 text-ink-muted">{step === 'creds' ? L('Welcome back.', 'مرحباً بعودتك.') : L(`Enter the 6-digit code sent to ${email}.`, `أدخل الرمز المكون من ٦ أرقام المرسل إلى ${email}.`)}</p>
       <form onSubmit={submit} className="mt-8 space-y-4">
         {step === 'creds' ? (
@@ -78,7 +78,7 @@ export function SignIn() {
         {error && <Callout tone="bad">{error}</Callout>}
         <Button type="submit" variant="primary" size="lg" className="w-full" loading={busy} disabled={step === 'otp' && otp.length !== 6}>{step === 'creds' ? L('Continue', 'متابعة') : L('Verify and sign in', 'تحقق وادخل')}</Button>
       </form>
-      <p className="mt-6 text-[13.5px] text-ink-muted">{L('New to Fatura?', 'جديد على فاتورة؟')} <Link to="/signup" className="link font-medium">{L('Create an account', 'أنشئ حساباً')}</Link></p>
+      <p className="mt-6 text-[13.5px] text-ink-muted">{L('New to Fattura?', 'جديد على فاتورة؟')} <Link to="/signup" className="link font-medium">{L('Create an account', 'أنشئ حساباً')}</Link></p>
       {api && SHOW_DEMO_LOGINS && (
         <div className="mt-6"><Callout tone="info" title={L('Test workspace logins', 'حسابات الاختبار')}>
           <div className="space-y-1.5 mt-1" dir="ltr">
@@ -88,7 +88,7 @@ export function SignIn() {
           </div>
         </Callout></div>
       )}
-      <div className="mt-8"><Callout tone="info" icon={<ShieldCheck className="size-[18px]" />}>{L('Fatura staff use the same sign-in, then open the admin panel from the user menu.', 'يستخدم موظفو فاتورة نفس الدخول ثم يفتحون لوحة الإدارة من قائمة المستخدم.')}</Callout></div>
+      <div className="mt-8"><Callout tone="info" icon={<ShieldCheck className="size-[18px]" />}>{L('Fattura staff use the same sign-in, then open the admin panel from the user menu.', 'يستخدم موظفو فاتورة نفس الدخول ثم يفتحون لوحة الإدارة من قائمة المستخدم.')}</Callout></div>
     </AuthFrame>
   );
 }

@@ -1,4 +1,4 @@
-import { Activity, BookOpen, Building2, CreditCard, Gauge, Globe, Inbox, Layers, ScrollText, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { Activity, BookOpen, Building2, CreditCard, Gauge, Globe, Inbox, Layers, ScrollText, ShieldCheck, SlidersHorizontal, ServerCog } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { useStore } from '@/store/store';
 import { Navigate } from 'react-router-dom';
@@ -9,7 +9,7 @@ export function AdminLayout() {
   const { L } = useI18n();
   const pastDue = db.admin.tenants.filter((t) => t.status === 'past_due').length;
   const groups: NavGroup[] = [
-    { items: [{ to: '/admin', end: true, label: L('Overview', 'نظرة عامة'), icon: <Gauge /> }] },
+    { items: [{ to: '/admin', end: true, label: L('Overview', 'نظرة عامة'), icon: <Gauge /> }, { to: '/admin/operations', label: L('Beta operations', 'تشغيل النسخة التجريبية'), icon: <ServerCog /> }] },
     {
       label: L('Customers', 'العملاء'),
       items: [

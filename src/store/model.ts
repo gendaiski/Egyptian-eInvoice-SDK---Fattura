@@ -91,6 +91,7 @@ export interface Tenant {
   id: string; name: string; rin: string; owner: string; governorate: string; planId: string; model: BillingModel; cycle?: 'monthly' | 'yearly';
   status: 'active' | 'trial' | 'past_due' | 'suspended'; env: 'preprod' | 'production'; docsThisMonth: number; invalidRate: number;
   signer: 'online' | 'offline'; mrr: number; createdAt: string; installmentsPaid?: number;
+  pendingBilling?: { model: 'monthly' | 'yearly' | 'one-time' | 'installments'; requestedAt: string; requestedBy: string };
 }
 export interface PlatformInvoice {
   id: string; number: string; tenantId: string; issuedAt: string; dueAt: string; amount: number; vat: number;
@@ -138,7 +139,7 @@ export function companyParty(c: Company, branchId: string): Party {
   return { type: 'B', id: c.rin, name: c.name, address: { ...b.address, branchID: b.code } };
 }
 
-/** Builds the exact ETA v1.0 JSON for a Fatura document. */
+/** Builds the exact ETA v1.0 JSON for a Fattura document. */
 export function toEtaDocument(d: Doc, c: Company): EtaDocument {
   const { lines, totals } = computeDoc(d);
   const self = companyParty(c, d.branchId);

@@ -3,9 +3,9 @@ import type {
 } from './types';
 
 /**
- * The ETA eInvoicing API surface Fatura depends on. One method per SDK operation;
+ * The ETA eInvoicing API surface Fattura depends on. One method per SDK operation;
  * the production implementation lives in the backend (secrets never reach the browser)
- * and the SPA talks to Fatura's own API, which proxies these calls per tenant.
+ * and the SPA talks to Fattura's own API, which proxies these calls per tenant.
  *
  * Environments
  *   SIT (integrators) id: https://id.sit.eta.gov.eg      api: https://api.sit.invoicing.eta.gov.eg

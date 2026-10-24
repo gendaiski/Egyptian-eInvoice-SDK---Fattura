@@ -26,7 +26,7 @@ export function ReceiptsPage() {
         <SectionHead title={L('How e-receipts work', 'كيف تعمل الإيصالات الإلكترونية')} />
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            [<MonitorSmartphone key="a" />, L('Register each device', 'سجّل كل جهاز'), L('Each POS is registered with its serial number. Fatura stores the per-device credentials and rotates tokens.', 'يُسجّل كل جهاز برقمه التسلسلي وتدير فاتورة بياناته.')],
+            [<MonitorSmartphone key="a" />, L('Register each device', 'سجّل كل جهاز'), L('Each POS is registered with its serial number. Fattura stores the per-device credentials and rotates tokens.', 'يُسجّل كل جهاز برقمه التسلسلي وتدير فاتورة بياناته.')],
             [<Link2 key="b" />, L('A chained receipt UUID', 'معرّف إيصال متسلسل'), L('Each receipt’s UUID is a SHA-256 of its content and references the previous one, so gaps are visible.', 'معرّف كل إيصال بصمة SHA-256 مرتبطة بالسابق فتظهر الفجوات.')],
             [<Wifi key="c" />, L('Offline, then catch up', 'دون اتصال ثم المزامنة'), L('If the connection drops, receipts queue on the device and submit in order when it returns.', 'عند انقطاع الاتصال تُخزن الإيصالات وتُرسل بالترتيب عند عودته.')],
           ].map(([icon, t, d], i) => (

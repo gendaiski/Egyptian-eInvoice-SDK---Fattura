@@ -18,7 +18,7 @@ const base32 = (n: number) => Array.from(randomBytes(n), (b) => 'ABCDEFGHJKMNPQR
 const CODE_REVIEW_MS = 60_000;
 
 /**
- * An in-process stand-in for ETA that behaves like the real service for everything Fatura does:
+ * An in-process stand-in for ETA that behaves like the real service for everything Fattura does:
  * it validates structure and totals with the official rules, checks item codes against the codes
  * this taxpayer registered, verifies the CAdES-BES signature, enforces cancel/reject windows, and
  * routes documents between taxpayers by RIN (so one tenant's invoice shows up in the other's inbox).
@@ -117,7 +117,7 @@ export class SimulatorEta implements EtaApi {
 
   async getDocumentPdf(uuid: string) {
     const d = await this.mustOwnOrReceive(uuid);
-    const text = `%PDF-1.4\n% Fatura ETA simulator printout\n% ${d.internalId} ${d.uuid} ${d.status}\n%%EOF\n`;
+    const text = `%PDF-1.4\n% Fattura ETA simulator printout\n% ${d.internalId} ${d.uuid} ${d.status}\n%%EOF\n`;
     return new TextEncoder().encode(text);
   }
 

@@ -1,6 +1,6 @@
 import type { Plan, Tenant } from '@/store/model';
 
-/** How a Fatura subscription is paid. Mirrors the tenant's billing model + cycle. */
+/** How a Fattura subscription is paid. Mirrors the tenant's billing model + cycle. */
 export type Billing = 'monthly' | 'yearly' | 'installments' | 'one-time';
 
 /** [amount, unit label EN, unit label AR] for a plan under a billing model. */

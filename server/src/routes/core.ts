@@ -199,7 +199,7 @@ async function adminUpsert(c: Context, kind: string, id: string, b: Record<strin
       await r.putPlatform('leads', id, { ...lead, id, at: new Date().toISOString(), source: b.source === 'pricing' ? 'pricing' : 'contact', status: 'new' });
       return c.json({ ok: true }, 201);
     }
-    if (!user?.staffRole) throw new HttpError(403, 'forbidden', 'Fatura staff only.');
+    if (!user?.staffRole) throw new HttpError(403, 'forbidden', 'Fattura staff only.');
     const status = String(b.status);
     if (!['new', 'contacted', 'qualified', 'won', 'lost'].includes(status)) throw new HttpError(422, 'bad_status', 'Unknown lead status.');
     await r.putPlatform('leads', id, { ...existing, status });
@@ -221,17 +221,9 @@ async function adminUpsert(c: Context, kind: string, id: string, b: Record<strin
     await db.query('UPDATE tenants SET status = $2, plan_id = $3, data = $4 WHERE id = $1', [id, status, planId, JSON.stringify(data)]);
     await r.audit(u.email, status !== t.data.status ? `tenant.${status}` : 'plan.change', String(t.data.name), id);
   } else if (kind === 'invoices') {
-    requireStaff(c, ['Super admin', 'Finance']);
-    const inv = await r.platformOne<Record<string, unknown>>('invoices', id);
-    if (!inv) throw new HttpError(404, 'not_found', 'Invoice not found.');
-    await r.putPlatform('invoices', id, { ...inv, status: b.status });
-    if (b.status === 'paid') await db.query("UPDATE tenants SET status = 'active', data = jsonb_set(data, '{status}', '\"active\"') WHERE id = $1 AND status = 'past_due'", [inv.tenantId]);
-    await r.audit(u.email, 'billing.payment_received', String(inv.number));
+    throw new HttpError(405, 'use_payment_record', 'Use the audited payment recording action with a method and reference.');
   } else if (kind === 'refs') {
-    requireStaff(c, ['Super admin', 'Support']);
-    const ref = await r.platformOne<Record<string, unknown>>('refs', id);
-    if (!ref) throw new HttpError(404, 'not_found', 'Reference table not found.');
-    await r.putPlatform('refs', id, { ...ref, syncedAt: new Date().toISOString(), status: 'ok' });
+    throw new HttpError(405, 'sync_unavailable', 'The ETA reference sync source is not connected. Bundled tables remain available.');
   } else throw new HttpError(404, 'unknown_collection', `Unknown admin collection ${kind}.`);
   return c.json({ ok: true });
 }

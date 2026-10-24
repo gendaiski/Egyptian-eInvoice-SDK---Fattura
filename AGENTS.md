@@ -1,6 +1,6 @@
 # AGENTS.md — working rules for coding agents (Codex, Claude Code, others)
 
-Fatura is an Egyptian ETA e-invoicing SaaS: React front end + Hono/Node API on Postgres + a USB-token
+Fattura is an Egyptian ETA e-invoicing SaaS: React front end + Hono/Node API on Postgres + a USB-token
 signer agent. Read `docs/HANDOFF.md` first; it describes what exists, what is verified and what is next.
 
 ## Commands
@@ -26,12 +26,12 @@ also run the smoke test against a fresh database (delete `.data/` or set `PGLITE
 - `server/src/` — API. `routes/` (core: auth + data sync; actions: workflow; ext: integration API; signer protocol
   inside actions.ts), `services/` (documents pipeline, webhooks outbox, worker tick), `eta/` (HTTP client +
   simulator), `signing/` (CAdES-BES), `db/` (client, migrations, seed), `repo.ts` (data access).
-- `signer-agent/` — Fatura Signer (PKCS#11 USB token or .p12) that long-polls the server for signing jobs.
+- `signer-agent/` — Fattura Signer (PKCS#11 USB token or .p12) that long-polls the server for signing jobs.
 - `docs/` — HANDOFF, API, ARCHITECTURE, ETA-SDK-MAPPING, UX-FLOWS, DESIGN-SYSTEM.
 
 ## Invariants — do not break
 
-1. **ETA always receives one tax document per sale.** Recurring and installment plans are Fatura-side
+1. **ETA always receives one tax document per sale.** Recurring and installment plans are Fattura-side
    receivables; never split a sale into several ETA documents.
 2. **Tax maths and canonical serialization live in `src/eta/` only** and are covered by tests. Change them only with
    test cases that cite the ETA rule. The server imports them; do not fork copies.

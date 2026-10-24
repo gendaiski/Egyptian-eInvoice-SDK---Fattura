@@ -27,6 +27,8 @@ const schema = z.object({
   ETA_API_URL: z.string().optional(),
   /** Operator gate. Production submissions also require confirmation on each request. */
   ETA_PRODUCTION_SUBMISSION_ENABLED: z.enum(['true', 'false']).default('false'),
+  /** Explicitly enables local/sandbox payment outcome simulation. Never a real charge. */
+  PAYMENT_SIMULATOR_ENABLED: z.enum(['true', 'false']).default('false'),
 });
 
 export type Env = z.infer<typeof schema>;

@@ -12,7 +12,8 @@ export async function emit(db: Db, tenantId: string, event: string, data: Record
 }
 
 /**
- * Delivers queued events. Each POST carries X-Fatura-Event and X-Fatura-Signature
+ * Delivers queued events. Each POST carries X-Fattura-Event and X-Fattura-Signature.
+ * Legacy X-Fatura-* headers remain for existing integrations.
  * (sha256=HMAC of the raw body with the webhook secret). Failures retry with backoff up to 8 times.
  */
 export async function deliverOutbox(db: Db, limit = 25, fetchImpl: typeof fetch = fetch) {
@@ -25,7 +26,7 @@ export async function deliverOutbox(db: Db, limit = 25, fetchImpl: typeof fetch 
     for (const h of hooks.filter((h) => h.events.includes('*') || h.events.includes(e.event))) {
       const sig = createHmac('sha256', decrypt(h.secret_enc)).update(body).digest('hex');
       try {
-        const res = await fetchImpl(h.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Fatura-Event': e.event, 'X-Fatura-Signature': `sha256=${sig}`, 'X-Fatura-Delivery': e.id }, body, signal: AbortSignal.timeout(8000) });
+        const res = await fetchImpl(h.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Fattura-Event': e.event, 'X-Fattura-Signature': `sha256=${sig}`, 'X-Fattura-Delivery': e.id, 'X-Fatura-Event': e.event, 'X-Fatura-Signature': `sha256=${sig}`, 'X-Fatura-Delivery': e.id }, body, signal: AbortSignal.timeout(8000) });
         if (!res.ok) { ok = false; lastError = `HTTP ${res.status}`; }
       } catch (err) { ok = false; lastError = (err as Error).message; }
     }

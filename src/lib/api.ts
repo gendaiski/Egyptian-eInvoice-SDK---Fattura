@@ -4,7 +4,7 @@ export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string, public details?: unknown) { super(message); }
 }
 
-/** JSON call to the Fatura API with the session cookie. Throws ApiError with the server's message. */
+/** JSON call to the Fattura API with the session cookie. Throws ApiError with the server's message. */
 export async function api<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response;
   try {
@@ -14,7 +14,7 @@ export async function api<T = unknown>(method: string, path: string, body?: unkn
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
-    throw new ApiError(0, 'network', 'Could not reach the Fatura server. Check your connection and try again.');
+    throw new ApiError(0, 'network', 'Could not reach the Fattura server. Check your connection and try again.');
   }
   const text = await res.text();
   const json = text ? (() => { try { return JSON.parse(text); } catch { return undefined; } })() : undefined;

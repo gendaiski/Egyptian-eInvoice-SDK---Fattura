@@ -1,9 +1,9 @@
 {
-  "name": "fatura",
+  "name": "fattura",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Fatura — Egyptian ETA e-invoicing SaaS: taxpayer workspace and platform admin panel",
+  "description": "Fattura — Egyptian ETA e-invoicing SaaS: taxpayer workspace and platform admin panel",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -17,7 +17,8 @@
     "build:signer": "node scripts/build-server.mjs signer",
     "start": "node dist-server/server.mjs",
     "test:server": "vitest run server/test",
-    "build:vercel": "VITE_DATA=api vite build && node scripts/build-vercel.mjs"
+    "build:vercel": "VITE_DATA=api vite build && node scripts/build-vercel.mjs",
+    "beta:local": "node scripts/start-beta.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

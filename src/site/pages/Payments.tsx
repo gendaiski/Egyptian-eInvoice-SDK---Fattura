@@ -22,7 +22,7 @@ export function Payments() {
   return (
     <>
       <PageHero kicker={L('Payments', 'المدفوعات')} title={L('Get paid the way your customers can pay.', 'حصّل بالطريقة التي يستطيع عملاؤك الدفع بها.')}
-        lead={L('One payment, recurring schedules, or installments with a down payment. ETA always receives a single valid tax document; the plan lives in Fatura.', 'دفعة واحدة أو جداول متكررة أو أقساط بدفعة مقدمة. المصلحة تستلم مستنداً ضريبياً واحداً والخطة في فاتورة.')}
+        lead={L('One payment, recurring schedules, or installments with a down payment. ETA always receives a single valid tax document; the plan lives in Fattura.', 'دفعة واحدة أو جداول متكررة أو أقساط بدفعة مقدمة. المصلحة تستلم مستنداً ضريبياً واحداً والخطة في فاتورة.')}
         actions={<LinkButton to="/app/documents/new" variant="primary" size="lg">{L('Try it in the composer', 'جرّبها في المحرر')}</LinkButton>} />
 
       <Section>
@@ -36,7 +36,7 @@ export function Payments() {
               {[
                 [L('What ETA receives', 'ما تستلمه المصلحة'), L('One invoice', 'فاتورة واحدة'), L('A new invoice on each run, dated that day', 'فاتورة جديدة في كل دورة بتاريخ يومها'), L('One invoice for the full amount', 'فاتورة واحدة بالمبلغ كاملاً')],
                 [L('When VAT is due', 'استحقاق الضريبة'), L('On issue', 'عند الإصدار'), L('On each run', 'في كل دورة'), L('On issue, for the full amount', 'عند الإصدار عن المبلغ كاملاً')],
-                [L('What Fatura tracks', 'ما تتابعه فاتورة'), L('Due date, partial payments, aging', 'الاستحقاق والدفعات الجزئية والأعمار'), L('Schedule, next runs, approval or auto-submit', 'الجدول والدورات القادمة والاعتماد'), L('Down payment, schedule, late installments', 'الدفعة المقدمة والجدول والتأخير')],
+                [L('What Fattura tracks', 'ما تتابعه فاتورة'), L('Due date, partial payments, aging', 'الاستحقاق والدفعات الجزئية والأعمار'), L('Schedule, next runs, approval or auto-submit', 'الجدول والدورات القادمة والاعتماد'), L('Down payment, schedule, late installments', 'الدفعة المقدمة والجدول والتأخير')],
                 [L('Good for', 'مناسبة لـ'), L('Projects, goods, one-off services', 'المشروعات والسلع والخدمات'), L('Retainers, rent, subscriptions, maintenance', 'العقود والإيجارات والاشتراكات'), L('Equipment, large orders, annual licences', 'المعدات والطلبيات الكبيرة والتراخيص')],
               ].map(([k, ...v]) => <tr key={k}><th className="p-5 text-start font-medium text-ink-muted align-top">{k}</th>{v.map((c, i) => <td key={i} className="p-5 align-top">{c}</td>)}</tr>)}
             </tbody>

@@ -3,6 +3,8 @@ import { DEMO_USERS } from '../src/db/seed';
 import { signCades, softwareSigner } from '../src/signing/cades';
 import { generateTestCertificate } from '../src/signing/testCert';
 import { client, freshApp } from './helpers';
+import { getDb } from '../src/db/client';
+import { repo } from '../src/repo';
 
 let app: Awaited<ReturnType<typeof freshApp>>;
 beforeAll(async () => { app = await freshApp(); });
@@ -41,6 +43,71 @@ describe('public & auth', () => {
     const staff = client(app); await staff.login(DEMO_USERS.staff.email, DEMO_USERS.staff.password);
     const boot = await staff.get('/v1/bootstrap');
     expect(boot.json.admin.leads.some((l: { email: string }) => l.email === 'omar@example.com')).toBe(true);
+  });
+});
+
+describe('beta admin operations', () => {
+  it('shows real server counts only to staff and records payment evidence once', async () => {
+    const anonymous = client(app);
+    expect((await anonymous.get('/v1/operations/status')).status).toBe(401);
+    const owner = client(app); await owner.login('hana@example.com', 'longpassword1');
+    expect((await owner.get('/v1/operations/status')).status).toBe(403);
+    const staff = client(app); await staff.login(DEMO_USERS.staff.email, DEMO_USERS.staff.password);
+    const status = await staff.get('/v1/operations/status');
+    expect(status.status).toBe(200);
+    expect(status.json.counts.tenants).toBeGreaterThan(0);
+    expect(status.json.database).toBe('pglite');
+    const invoice = (await staff.get('/v1/bootstrap')).json.admin.invoices.find((i: { status: string }) => i.status === 'open' || i.status === 'overdue');
+    expect(invoice).toBeTruthy();
+    expect((await staff.put(`/v1/data/admin.invoices/${invoice.id}`, { ...invoice, status: 'paid' })).status).toBe(405);
+    expect((await staff.post(`/v1/operations/billing/${invoice.id}/record-payment`, { method: 'bank-transfer', reference: '' })).status).toBe(422);
+    expect((await staff.post(`/v1/operations/billing/${invoice.id}/record-payment`, { method: 'bank-transfer', reference: 'BANK-TEST-001' })).status).toBe(200);
+    expect((await staff.post(`/v1/operations/billing/${invoice.id}/record-payment`, { method: 'bank-transfer', reference: 'BANK-TEST-001' })).status).toBe(409);
+    const paid = (await staff.get('/v1/bootstrap')).json.admin.invoices.find((i: { id: string }) => i.id === invoice.id);
+    expect(paid.payment).toMatchObject({ reference: 'BANK-TEST-001', method: 'bank-transfer' });
+    const exported = await staff.get('/v1/operations/audit/export');
+    expect(exported.status).toBe(200);
+    expect(exported.json.rows.some((r: { action: string }) => r.action === 'billing.payment_recorded')).toBe(true);
+  });
+
+  it('runs the scoped simulator retry and rejects invalid tenants', async () => {
+    const staff = client(app); await staff.login(DEMO_USERS.staff.email, DEMO_USERS.staff.password);
+    expect((await staff.post('/v1/operations/eta/retry-simulator', { tenantId: 'missing' })).status).toBe(404);
+    const signup = client(app);
+    const created = await signup.post('/v1/auth/signup', { name: 'Beta Operator', company: 'Beta Retry Test', email: 'beta-retry@example.com', password: 'longpassword1', plan: 'scale', billing: 'monthly' });
+    expect(created.status).toBe(201);
+    const retry = await staff.post('/v1/operations/eta/retry-simulator', { tenantId: created.json.tenantId });
+    expect(retry.status).toBe(200);
+    expect(retry.json.completed).toBe(0);
+  });
+
+  it('persists a tenant billing request and requires staff approval to apply it', async () => {
+    const owner = client(app); await owner.login('hana@example.com', 'longpassword1');
+    const staff = client(app); await staff.login(DEMO_USERS.staff.email, DEMO_USERS.staff.password);
+    const request = await owner.post('/v1/operations/billing/change-request', { model: 'yearly' });
+    expect(request.status).toBe(200);
+    const tenant = (await owner.get('/v1/bootstrap')).json.admin.tenants[0];
+    expect(tenant.model).toBe('installments');
+    expect(tenant.pendingBilling.model).toBe('yearly');
+    expect((await owner.post('/v1/operations/billing/change-request', { model: 'monthly' })).status).toBe(409);
+    expect((await owner.post(`/v1/operations/billing/change-request/${tenant.id}/approve`)).status).toBe(403);
+    expect((await staff.post(`/v1/operations/billing/change-request/${tenant.id}/approve`)).status).toBe(200);
+    const updated = (await owner.get('/v1/bootstrap')).json.admin.tenants[0];
+    expect(updated.model).toBe('recurring');
+    expect(updated.cycle).toBe('yearly');
+    expect(updated.pendingBilling).toBeUndefined();
+  });
+
+  it('exports tenant-owned data without integration secrets', async () => {
+    const owner = client(app); await owner.login('hana@example.com', 'longpassword1');
+    const exportResult = await owner.get('/v1/operations/tenant/export');
+    expect(exportResult.status).toBe(200);
+    expect(exportResult.json.format).toBe('fatura-beta-json-v1');
+    expect(exportResult.json.tenant.id).toBe((await owner.get('/v1/me')).json.tenantId);
+    expect(exportResult.json.documents).toEqual([]);
+    expect(JSON.stringify(exportResult.json)).not.toContain('eta_client_secret_enc');
+    const staff = client(app); await staff.login(DEMO_USERS.staff.email, DEMO_USERS.staff.password);
+    expect((await staff.get('/v1/operations/tenant/export')).status).toBe(403);
   });
 });
 
@@ -168,7 +235,7 @@ describe('integration API (API keys)', () => {
 });
 
 describe('received documents between two tenants', () => {
-  it('routes an invoice issued to another Fatura tenant into its inbox, where it can be rejected', async () => {
+  it('routes an invoice issued to another Fattura tenant into its inbox, where it can be rejected', async () => {
     // Tenant B signs up and is onboarded with the RIN that tenant A invoices.
     const b = client(app);
     await b.post('/v1/auth/signup', { name: 'Buyer Admin', company: 'Buyer Co', email: 'buyer@example.com', password: 'longpassword1' });
@@ -178,9 +245,11 @@ describe('received documents between two tenants', () => {
     // Tenant A invoices that RIN.
     const a = client(app); await a.login(DEMO_USERS.owner.email, DEMO_USERS.owner.password);
     const d = draft({ counterparty: { type: 'B', id: '311204587', name: 'Buyer Co', address: { country: 'EG', governate: 'Alexandria', regionCity: 'Smouha', street: 'Fawzy Moaz', buildingNumber: '12' } }, customerId: undefined });
-    await a.put(`/v1/data/docs/${d.id}`, d);
-    await a.post('/v1/actions/documents/submit', { ids: [d.id] });
+    expect((await a.put(`/v1/data/docs/${d.id}`, d)).status).toBe(200);
+    const submission = await a.post('/v1/actions/documents/submit', { ids: [d.id] });
+    expect(submission.status).toBe(200);
     const issued = (await a.get('/v1/bootstrap')).json.docs.find((x: { id: string }) => x.id === d.id);
+    expect(issued?.uuid).toBeTruthy();
     const sync = await b.post('/v1/actions/received/sync');
     expect(sync.json.imported).toBeGreaterThanOrEqual(1);
     const received = (await b.get('/v1/bootstrap')).json.docs.find((x: { uuid: string }) => x.uuid === issued.uuid);
@@ -189,5 +258,36 @@ describe('received documents between two tenants', () => {
     expect(received.counterparty.name).toContain('Lawtech');
     const rej = await b.post(`/v1/actions/documents/${received.id}/reject`, { reason: 'Goods not received' });
     expect(rej.json.status).toBe('Rejected');
+  });
+});
+
+describe('provider-neutral payment intents', () => {
+  it('keeps test outcomes tenant-scoped, idempotent and auditable', async () => {
+    const owner = client(app);
+    const created = await owner.post('/v1/auth/signup', { name: 'Payment Owner', company: 'Payment Test Co', email: 'pay-test@example.com', password: 'longpassword1', plan: 'scale', billing: 'monthly' });
+    expect(created.status).toBe(201);
+    const invoice = { id: 'pi_test_invoice', number: 'TEST-PAY-001', tenantId: created.json.tenantId, issuedAt: new Date().toISOString(), dueAt: new Date().toISOString(), amount: 100, vat: 14, model: 'recurring', status: 'open', etaStatus: 'Valid' };
+    await repo(await getDb()).putPlatform('invoices', invoice.id, invoice);
+    const list = await owner.get('/v1/payments/providers');
+    expect(list.status).toBe(200);
+    expect(list.json.providers.map((p: { id: string }) => p.id)).toEqual(['simulator', 'paymob', 'fawry', 'bank-transfer']);
+    expect(list.json.providers.find((p: { id: string }) => p.id === 'paymob').enabled).toBe(false);
+    expect((await owner.post('/v1/payments/intents', { invoiceId: invoice.id, provider: 'paymob' })).status).toBe(422);
+    const first = await owner.post('/v1/payments/intents', { invoiceId: invoice.id, provider: 'simulator' });
+    expect(first.status).toBe(200);
+    expect(first.json.movesMoney).toBe(false);
+    const repeat = await owner.post('/v1/payments/intents', { invoiceId: invoice.id, provider: 'simulator' });
+    expect(repeat.json.id).toBe(first.json.id);
+    const other = client(app); await other.login('hana@example.com', 'longpassword1');
+    expect((await other.post(`/v1/payments/intents/${first.json.id}/simulate`, { outcome: 'paid' })).status).toBe(404);
+    expect((await owner.post(`/v1/payments/intents/${first.json.id}/simulate`, { outcome: 'failed' })).status).toBe(200);
+    expect((await owner.get('/v1/bootstrap')).json.admin.invoices.find((i: { id: string }) => i.id === invoice.id).status).toBe(invoice.status);
+    const retry = await owner.post('/v1/payments/intents', { invoiceId: invoice.id, provider: 'simulator' });
+    expect(retry.json.id).toBe(first.json.id);
+    expect((await owner.post(`/v1/payments/intents/${first.json.id}/simulate`, { outcome: 'paid' })).status).toBe(200);
+    expect((await owner.post(`/v1/payments/intents/${first.json.id}/simulate`, { outcome: 'paid' })).status).toBe(409);
+    const paid = (await owner.get('/v1/bootstrap')).json.admin.invoices.find((i: { id: string }) => i.id === invoice.id);
+    expect(paid.status).toBe('paid');
+    expect(paid.payment.method).toBe('simulator');
   });
 });

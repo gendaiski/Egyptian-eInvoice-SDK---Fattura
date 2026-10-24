@@ -108,7 +108,7 @@ export async function completeSigning(db: Db, tenantId: string, jobId: string, s
     batch.push({ doc, eta, signature: sig.value });
   }
   await db.query("UPDATE signing_jobs SET status = 'done', completed_at = now() WHERE id = $1", [jobId]);
-  return submitSigned(db, tenantId, batch, 'Fatura Signer', cfg.integration.env === 'production' && job.items.every((item) => item.productionConfirmed));
+  return submitSigned(db, tenantId, batch, 'Fattura Signer', cfg.integration.env === 'production' && job.items.every((item) => item.productionConfirmed));
 }
 
 async function submitSigned(db: Db, tenantId: string, batch: { doc: Doc; eta: EtaDocument; signature: string }[], by: string, confirmedProduction = false) {
@@ -129,7 +129,7 @@ async function submitSigned(db: Db, tenantId: string, batch: { doc: Doc; eta: Et
   for (const b of batch) {
     const acc = res.acceptedDocuments.find((a) => a.internalId === b.doc.internalID);
     const rej = res.rejectedDocuments.find((a) => a.internalId === b.doc.internalID);
-    b.doc.events.push({ at: now(), type: 'signed', by: by === 'Fatura Signer' ? 'Fatura Signer · USB token' : 'Fatura · test certificate' });
+    b.doc.events.push({ at: now(), type: 'signed', by: by === 'Fattura Signer' ? 'Fattura Signer · USB token' : 'Fattura · test certificate' });
     if (acc) {
       Object.assign(b.doc, { status: 'Submitted', uuid: acc.uuid, longId: acc.longId, submissionId: res.submissionId, submittedAt: now(), issuedAt: b.eta.dateTimeIssued });
       b.doc.events.push({ at: now(), type: 'submitted', by });

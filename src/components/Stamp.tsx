@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { cx } from './ui';
 
 /**
- * Fatura's signature graphic: a tax-office seal. Used sparingly — once per marketing page,
+ * Fattura's signature graphic: a tax-office seal. Used sparingly — once per marketing page,
  * and as the "Valid" moment in product empty states. Text runs around the ring in both scripts.
  */
 export function Stamp({ size = 132, label = 'VALID', sub = 'صالحة', ring = 'ETA · E-INVOICE · فاتورة إلكترونية · ', className, tone = 'accent' }: {

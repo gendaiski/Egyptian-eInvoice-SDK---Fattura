@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Fatura design system v2 — tokens
+   Fattura design system v2 — tokens
    Layout concept: ledger-calm workspace, editorial marketing; one Nile accent,
    stone neutrals biased toward the accent hue, status colours kept separate.
    Colours are space-separated RGB so Tailwind alpha modifiers work.
@@ -167,7 +167,7 @@
   background-size: 800px 100%; animation: shimmer 1.4s linear infinite; border-radius: 6px;
 }
 
-/* Fatura v2 entry screens: product document first, then the day's work. */
+/* Fattura v2 entry screens: product document first, then the day's work. */
 .fatura-v2-hero {
   position: relative;
   overflow: hidden;

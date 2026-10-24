@@ -4,7 +4,7 @@ import { setEnv } from '../src/env';
 
 /** A fresh app on an in-memory database with the demo seed, plus a cookie-carrying client. */
 export async function freshApp() {
-  setEnv({ PGLITE_DIR: 'memory', DATABASE_URL: undefined, SEED_DEMO: 'true', APP_SECRET: 'test-secret-test-secret-test-secret-123', CRON_SECRET: undefined });
+  setEnv({ PGLITE_DIR: 'memory', DATABASE_URL: undefined, SEED_DEMO: 'true', APP_SECRET: 'test-secret-test-secret-test-secret-123', CRON_SECRET: undefined, PAYMENT_SIMULATOR_ENABLED: 'true' });
   await resetDb();
   const app = createApp();
   return app;

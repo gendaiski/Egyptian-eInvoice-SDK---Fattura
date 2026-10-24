@@ -377,7 +377,7 @@ export function Composer() {
 
           <div className="card p-4 space-y-3">
             {!signerOnline && <Callout tone="warn" title={L('Signer offline', 'التوقيع غير متصل')}>{L('You can save a draft; submission needs the USB token.', 'يمكنك حفظ مسودة؛ الإرسال يحتاج التوكن.')}</Callout>}
-            {signerQueued && <Callout tone="info" title={L('Signer offline', 'التوقيع غير متصل')}>{L('Submitted documents wait in the signing queue and go to ETA as soon as Fatura Signer reconnects.', 'تنتظر المستندات في قائمة التوقيع وتُرسل فور اتصال برنامج التوقيع.')}</Callout>}
+            {signerQueued && <Callout tone="info" title={L('Signer offline', 'التوقيع غير متصل')}>{L('Submitted documents wait in the signing queue and go to ETA as soon as Fattura Signer reconnects.', 'تنتظر المستندات في قائمة التوقيع وتُرسل فور اتصال برنامج التوقيع.')}</Callout>}
             <Button variant="primary" size="lg" className="w-full" icon={<Send className="size-4" />} onClick={onSubmit} loading={busy === 'submit'} disabled={(!signerOnline && !future) || !!busy}>
               {future ? L('Schedule recurring invoice', 'جدولة الفاتورة المتكررة') : L('Sign & submit to ETA', 'توقيع وإرسال للمصلحة')}
             </Button>
@@ -508,7 +508,7 @@ function PlanEditor({ doc, total, onChange }: { doc: Doc; total: number; onChang
                 ))}
               </tbody>
             </Table>
-            <p className="text-[12.5px] text-ink-muted flex gap-1.5"><Info className="size-4 shrink-0 text-info" />{L('ETA receives one invoice for the full amount — VAT is due when the invoice is issued, not as installments are collected. Fatura tracks the schedule and sends reminders.', 'تستلم المصلحة فاتورة واحدة بالمبلغ كاملاً — الضريبة مستحقة عند الإصدار. فاتورة تتابع الأقساط وترسل التذكيرات.')}</p>
+            <p className="text-[12.5px] text-ink-muted flex gap-1.5"><Info className="size-4 shrink-0 text-info" />{L('ETA receives one invoice for the full amount — VAT is due when the invoice is issued, not as installments are collected. Fattura tracks the schedule and sends reminders.', 'تستلم المصلحة فاتورة واحدة بالمبلغ كاملاً — الضريبة مستحقة عند الإصدار. فاتورة تتابع الأقساط وترسل التذكيرات.')}</p>
           </div>
         );
       })()}

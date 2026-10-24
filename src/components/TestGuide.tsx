@@ -53,7 +53,7 @@ const SCENARIOS: Scenario[] = [
     steps: [t('Composer → payment: Installments, 20 % down payment, 3 installments → Submit.', 'الإنشاء ← الدفع: أقساط، دفعة مقدمة ٢٠٪، ٣ أقساط ← إرسال.'),
       t('On the Valid invoice → Record payment for the down payment.', 'في الفاتورة الصالحة ← تسجيل دفعة للمقدم.'),
       t('Open Payments & installments.', 'افتح المدفوعات والأقساط.')],
-    expect: t('ETA gets one invoice for the full amount; Fatura tracks the schedule, the paid down payment and the next due installment.', 'تستلم المصلحة فاتورة واحدة بكامل المبلغ، وتتابع فاتورة الجدول والمقدم المدفوع والقسط التالي.') },
+    expect: t('ETA gets one invoice for the full amount; Fattura tracks the schedule, the paid down payment and the next due installment.', 'تستلم المصلحة فاتورة واحدة بكامل المبلغ، وتتابع فاتورة الجدول والمقدم المدفوع والقسط التالي.') },
   { id: 'recurring', group: 'pay', route: '/app/recurring', title: t('Recurring invoices', 'الفواتير المتكررة'),
     steps: [t('Open a schedule: check upcoming runs, Pause / Resume.', 'افتح جدولاً: راجع الإصدارات القادمة، إيقاف / استئناف.'),
       t('“Issue one now”.', '«إصدار واحدة الآن».')],

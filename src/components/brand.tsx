@@ -8,7 +8,7 @@ export function Logo({ className, compact, latinOnly }: { className?: string; co
         <path d="M10 8h12v3.2h-8.4v3.4h7.2v3.2h-7.2V24H10z" className="fill-accent-on" />
         <circle cx="23" cy="22" r="2.4" fill="#e3a63b" />
       </svg>
-      {!compact && <span className="text-[17px] tracking-[-0.02em] whitespace-nowrap">Fatura{!latinOnly && <span className="text-ink-subtle font-normal"> · فاتورة</span>}</span>}
+      {!compact && <span className="text-[17px] tracking-[-0.02em] whitespace-nowrap">Fattura{!latinOnly && <span className="text-ink-subtle font-normal"> · فاتورة</span>}</span>}
     </span>
   );
 }

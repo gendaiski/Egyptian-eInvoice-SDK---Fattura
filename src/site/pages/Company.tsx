@@ -14,13 +14,13 @@ export function Security() {
   const { L } = useI18n();
   const flow = [
     [<Usb key="a" />, L('Your PC + USB token', 'جهازك + التوكن'), L('Holds the private key. Signs a hash.', 'يحمل المفتاح ويوقّع البصمة.')],
-    [<Lock key="b" />, L('Fatura Signer', 'برنامج التوقيع'), L('Receives the hash over an authenticated channel; returns the signature.', 'يستلم البصمة عبر قناة موثقة ويعيد التوقيع.')],
-    [<Server key="c" />, L('Fatura API', 'خادم فاتورة'), L('Builds the document, embeds the signature, submits.', 'يبني المستند ويضيف التوقيع ويرسله.')],
+    [<Lock key="b" />, L('Fattura Signer', 'برنامج التوقيع'), L('Receives the hash over an authenticated channel; returns the signature.', 'يستلم البصمة عبر قناة موثقة ويعيد التوقيع.')],
+    [<Server key="c" />, L('Fattura API', 'خادم فاتورة'), L('Builds the document, embeds the signature, submits.', 'يبني المستند ويضيف التوقيع ويرسله.')],
     [<CheckCircle2 key="d" />, 'ETA', L('Validates and returns the UUID.', 'تتحقق وتعيد الرقم الفريد.')],
   ];
   return (
     <>
-      <PageHero kicker={L('Security', 'الأمان')} title={L('Your signing key never leaves your token.', 'مفتاح توقيعك لا يغادر التوكن.')} lead={L('Fatura is designed so that the parts that can issue tax documents in your name stay under your control.', 'صُممت فاتورة لتبقى الأجزاء القادرة على إصدار مستندات باسمك تحت سيطرتك.')} />
+      <PageHero kicker={L('Security', 'الأمان')} title={L('Your signing key never leaves your token.', 'مفتاح توقيعك لا يغادر التوكن.')} lead={L('Fattura is designed so that the parts that can issue tax documents in your name stay under your control.', 'صُممت فاتورة لتبقى الأجزاء القادرة على إصدار مستندات باسمك تحت سيطرتك.')} />
       <Section>
         <SectionHead title={L('How a document is signed', 'كيف يُوقّع المستند')} />
         <ol className="grid gap-3 md:grid-cols-4">
@@ -60,7 +60,7 @@ export function Status() {
   const degraded = today.errors > 100 || today.p95 > 2000;
   const fmt = (d: string) => new Intl.DateTimeFormat(lang === 'ar' ? 'ar-EG' : 'en-GB', { day: 'numeric', month: 'short' }).format(new Date(d));
   const comps = [
-    [L('Fatura web app', 'تطبيق فاتورة'), 'ok'], [L('Fatura API', 'واجهة فاتورة'), 'ok'], [L('Signer gateway', 'بوابة التوقيع'), 'ok'],
+    [L('Fattura web app', 'تطبيق فاتورة'), 'ok'], [L('Fattura API', 'واجهة فاتورة'), 'ok'], [L('Signer gateway', 'بوابة التوقيع'), 'ok'],
     ...ENDPOINTS.slice(0, 6).map((e) => [`ETA · ${e.op}`, 'ok']), ['ETA · Taxpayer notifications', 'warn'],
   ];
   return (
@@ -90,7 +90,7 @@ export function Status() {
         <article className="card p-6 max-w-[760px]">
           <div className="flex flex-wrap items-center gap-3"><Badge tone="warn">{L('Resolved', 'تم الحل')}</Badge><span className="text-[13px] text-ink-muted">{date(incident.date, 'long')}</span></div>
           <h3 className="mt-3 font-semibold text-[17px]">{L('ETA submission API returned 503 errors', 'واجهة إرسال المصلحة أعادت أخطاء 503')}</h3>
-          <p className="mt-2 text-ink-muted text-[14px]">{L(`For about 40 minutes ETA rejected submissions with 503 (${incident.errors} errors recorded). Fatura queued the documents and retried with backoff; every document was delivered and no data was lost.`, `لنحو ٤٠ دقيقة رفضت المصلحة الإرسال (${incident.errors} خطأ). حفظت فاتورة المستندات وأعادت المحاولة دون فقد.`)}</p>
+          <p className="mt-2 text-ink-muted text-[14px]">{L(`For about 40 minutes ETA rejected submissions with 503 (${incident.errors} errors recorded). Fattura queued the documents and retried with backoff; every document was delivered and no data was lost.`, `لنحو ٤٠ دقيقة رفضت المصلحة الإرسال (${incident.errors} خطأ). حفظت فاتورة المستندات وأعادت المحاولة دون فقد.`)}</p>
         </article>
       </Section>
     </>
@@ -102,8 +102,8 @@ export function About() {
   const { L } = useI18n();
   return (
     <>
-      <PageHero title={L('Tax compliance should feel like good software.', 'الامتثال الضريبي يجب أن يكون برنامجاً جيداً.')} lead={L('Fatura exists because issuing a correct invoice in Egypt shouldn’t take a consultant, a spreadsheet and a prayer.', 'وُجدت فاتورة لأن إصدار فاتورة صحيحة في مصر لا يجب أن يحتاج مستشاراً وجدولاً وكثيراً من الحظ.')}
-        aside={<div className="grid place-items-center"><Stamp size={220} label="FATURA" sub="فاتورة" ring="ARABIC FIRST · COMPLIANT BY CONSTRUCTION · " /></div>} />
+      <PageHero title={L('Tax compliance should feel like good software.', 'الامتثال الضريبي يجب أن يكون برنامجاً جيداً.')} lead={L('Fattura exists because issuing a correct invoice in Egypt shouldn’t take a consultant, a spreadsheet and a prayer.', 'وُجدت فاتورة لأن إصدار فاتورة صحيحة في مصر لا يجب أن يحتاج مستشاراً وجدولاً وكثيراً من الحظ.')}
+        aside={<div className="grid place-items-center"><Stamp size={220} label="FATTURA" sub="فاتورة" ring="ARABIC FIRST · COMPLIANT BY CONSTRUCTION · " /></div>} />
       <Section>
         <SectionHead title={L('What we hold ourselves to', 'ما نلتزم به')} />
         <div className="grid gap-8 md:grid-cols-3">
@@ -117,7 +117,7 @@ export function About() {
       <Section tone="surface">
         <div className="max-w-[720px]">
           <h2 className="font-display text-title">{L('Independent by design', 'مستقلة بطبيعتها')}</h2>
-          <p className="mt-3 text-lead text-ink-muted">{L('Fatura is independent software built on the public ETA SDK. We are not affiliated with or endorsed by the Egyptian Tax Authority.', 'فاتورة برنامج مستقل مبني على حزمة المصلحة العامة، وغير تابع لمصلحة الضرائب المصرية أو معتمد منها.')}</p>
+          <p className="mt-3 text-lead text-ink-muted">{L('Fattura is independent software built on the public ETA SDK. We are not affiliated with or endorsed by the Egyptian Tax Authority.', 'فاتورة برنامج مستقل مبني على حزمة المصلحة العامة، وغير تابع لمصلحة الضرائب المصرية أو معتمد منها.')}</p>
         </div>
       </Section>
       <CtaBand title={L('Talk to the team.', 'تحدث مع الفريق.')} primary={{ to: '/contact', label: L('Contact us', 'تواصل معنا') }} secondary={{ to: '/signup', label: L('Start free', 'ابدأ مجاناً') }} />
@@ -150,12 +150,12 @@ export function Contact() {
   const err = (k: keyof typeof errors) => (touched ? errors[k] || undefined : undefined);
   return (
     <>
-      <PageHero title={L('Talk to Fatura.', 'تحدث مع فاتورة.')} lead={L('Demos, pricing for larger volumes, partnerships, or help going live. A person replies within one working day.', 'عروض وأسعار للكميات الكبيرة وشراكات ومساعدة في التشغيل. يرد عليك شخص خلال يوم عمل.')} />
+      <PageHero title={L('Talk to Fattura.', 'تحدث مع فاتورة.')} lead={L('Demos, pricing for larger volumes, partnerships, or help going live. A person replies within one working day.', 'عروض وأسعار للكميات الكبيرة وشراكات ومساعدة في التشغيل. يرد عليك شخص خلال يوم عمل.')} />
       <Section>
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] items-start">
           {sent ? (
             <div className="card p-8 text-center animate-in" role="status">
-              <div className="grid place-items-center"><Stamp size={120} label="RECEIVED" sub="تم الاستلام" tone="ok" ring="FATURA · SALES · المبيعات · " /></div>
+              <div className="grid place-items-center"><Stamp size={120} label="RECEIVED" sub="تم الاستلام" tone="ok" ring="FATTURA · SALES · المبيعات · " /></div>
               <h2 className="mt-4 font-display text-[24px] font-semibold">{L(`Thanks, ${sent.name.split(' ')[0]}.`, `شكراً يا ${sent.name.split(' ')[0]}.`)}</h2>
               <p className="mt-2 text-ink-muted max-w-[44ch] mx-auto">{L('Your request is in our sales inbox with reference', 'طلبك في صندوق المبيعات برقم مرجعي')} <span className="font-mono text-ink">{sent.id.toUpperCase()}</span>. {L('We’ll email', 'سنراسلك على')} {sent.email}.</p>
               <p className="mt-4 text-[12.5px] text-ink-subtle">{L('In this demo, the request appears in Admin → Leads.', 'في هذا العرض يظهر الطلب في الإدارة ← العملاء المحتملون.')} <Link to="/admin/leads" className="link">{L('Open it', 'افتحه')}</Link></p>
@@ -208,11 +208,11 @@ function LegalPage({ title, updated, sections }: { title: string; updated: strin
 export function Terms() {
   const { L, date } = useI18n();
   return <LegalPage title={L('Terms of service', 'شروط الخدمة')} updated={date(new Date().toISOString(), 'long')} sections={[
-    [L('The service', 'الخدمة'), <p key="1">{L('Fatura provides software to prepare, sign, submit and manage e-invoices and e-receipts with the Egyptian Tax Authority (ETA). You remain the issuer of every document and responsible for its contents.', 'تقدم فاتورة برنامجاً لإعداد وتوقيع وإرسال وإدارة الفواتير والإيصالات الإلكترونية. تظل أنت المُصدر والمسؤول عن محتوى كل مستند.')}</p>],
-    [L('Your account and credentials', 'حسابك وبياناتك'), <p key="2">{L('You keep your ETA client credentials and signing certificate secure and authorise Fatura to use the credentials only to act on your instructions.', 'تحافظ على بيانات الربط وشهادة التوقيع وتفوض فاتورة باستخدامها لتنفيذ تعليماتك فقط.')}</p>],
+    [L('The service', 'الخدمة'), <p key="1">{L('Fattura provides software to prepare, sign, submit and manage e-invoices and e-receipts with the Egyptian Tax Authority (ETA). You remain the issuer of every document and responsible for its contents.', 'تقدم فاتورة برنامجاً لإعداد وتوقيع وإرسال وإدارة الفواتير والإيصالات الإلكترونية. تظل أنت المُصدر والمسؤول عن محتوى كل مستند.')}</p>],
+    [L('Your account and credentials', 'حسابك وبياناتك'), <p key="2">{L('You keep your ETA client credentials and signing certificate secure and authorise Fattura to use the credentials only to act on your instructions.', 'تحافظ على بيانات الربط وشهادة التوقيع وتفوض فاتورة باستخدامها لتنفيذ تعليماتك فقط.')}</p>],
     [L('Plans, billing and installments', 'الباقات والفوترة والأقساط'), <p key="3">{L('Plans are billed monthly, yearly, as a yearly licence in installments, or as a one-time licence. Installment plans are interest-free; a missed installment may pause submission after notice, while viewing and export remain available.', 'تُدفع الباقات شهرياً أو سنوياً أو بالتقسيط أو مرة واحدة. الأقساط دون فوائد، والتأخر قد يوقف الإرسال بعد إشعار مع بقاء العرض والتصدير.')}</p>],
     [L('Records', 'السجلات'), <p key="4">{L('We retain submitted documents for at least five years and let you export them at any time, including after cancellation.', 'نحتفظ بالمستندات خمس سنوات على الأقل ويمكنك تصديرها في أي وقت حتى بعد الإلغاء.')}</p>],
-    [L('Liability', 'المسؤولية'), <p key="5">{L('Fatura is not tax advice. Our liability is limited to the fees paid in the twelve months before a claim, except where the law does not allow a limit.', 'فاتورة ليست استشارة ضريبية. تقتصر مسؤوليتنا على الرسوم المدفوعة في الاثني عشر شهراً السابقة إلا حيث يمنع القانون ذلك.')}</p>],
+    [L('Liability', 'المسؤولية'), <p key="5">{L('Fattura is not tax advice. Our liability is limited to the fees paid in the twelve months before a claim, except where the law does not allow a limit.', 'فاتورة ليست استشارة ضريبية. تقتصر مسؤوليتنا على الرسوم المدفوعة في الاثني عشر شهراً السابقة إلا حيث يمنع القانون ذلك.')}</p>],
     [L('Governing law', 'القانون الحاكم'), <p key="6">{L('These terms are governed by the laws of the Arab Republic of Egypt, with disputes heard by the competent courts of Cairo.', 'تخضع هذه الشروط لقوانين جمهورية مصر العربية وتختص محاكم القاهرة.')}</p>],
   ]} />;
 }

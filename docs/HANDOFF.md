@@ -1,4 +1,4 @@
-# Fatura — engineering handoff
+# Fattura — engineering handoff
 
 *Handoff date: 5 October 2026. Read this, then `AGENTS.md`, before changing code.*
 
@@ -22,7 +22,7 @@
 | Email | Password | Role |
 |---|---|---|
 | `demo@fatura.eg` | `fatura-demo-2026` | Owner of the demo taxpayer (Lawtech Labs Egypt, ~100 documents, ETA simulator, test certificate) |
-| `admin@fatura.eg` | `fatura-admin-2026` | Fatura platform staff, *Super admin* (admin panel) |
+| `admin@fatura.eg` | `fatura-admin-2026` | Fattura platform staff, *Super admin* (admin panel) |
 
 These are demo credentials and are printed on the sign-in page (turn that off with `VITE_SHOW_DEMO_LOGINS=false`).
 Production secrets (`APP_SECRET`, `APP_ENCRYPTION_KEY`, `CRON_SECRET`) live only in the Vercel project's
@@ -30,7 +30,7 @@ environment variables — they are not in the repository and must not be.
 
 ## 2. What the product is
 
-Fatura lets an Egyptian company issue e-invoices, credit/debit notes and export invoices to the Egyptian Tax
+Fattura lets an Egyptian company issue e-invoices, credit/debit notes and export invoices to the Egyptian Tax
 Authority (ETA) e-invoicing system, get paid by **one payment, recurring schedules or installments**, and handle
 purchase documents suppliers issue to it. It is multi-tenant SaaS with a platform admin panel and a public website.
 
@@ -38,7 +38,7 @@ Three audiences:
 1. **Taxpayer users** — `/app`: dashboard, invoices & notes, composer, document detail, recurring, receivables &
    installments, customers, items & EGS/GS1 codes, received documents, submissions log, e-receipts (UI), tax reports,
    settings (company, branches, ETA connection, signing, team & roles, API & webhooks, numbering, plan & billing, data).
-2. **Fatura staff** — `/admin`: leads, tenants (+ detail, plan change, suspend), plans & pricing, billing & dunning,
+2. **Fattura staff** — `/admin`: leads, tenants (+ detail, plan change, suspend), plans & pricing, billing & dunning,
    ETA integration health, reference data, audit log, staff, platform settings / website banner.
 3. **Integrators** — REST integration API with API keys, idempotent document creation and signed webhooks.
 
@@ -61,7 +61,7 @@ Everything is bilingual English/Arabic with RTL, light/dark themes, responsive t
 | ETA HTTP client (OAuth2 client-credentials, token cache in DB, 401 re-login, 429/5xx back-off with Retry-After, UTF-8 Arabic bodies) | Done against a mock ETA | `server/test/eta-http.test.ts` (7 tests) — **not yet run against real ETA pre-production** |
 | ETA simulator (validation, signature verification, statuses, received routing) | Done | used by default for new tenants |
 | CAdES-BES signing (detached CMS, signingCertificateV2) | Done | `server/test/cades.test.ts` |
-| Signing modes: server-held test certificate; USB token via Fatura Signer agent (long-poll jobs) | Done | API test "USB-token signer agent protocol"; agent tested with a .p12 |
+| Signing modes: server-held test certificate; USB token via Fattura Signer agent (long-poll jobs) | Done | API test "USB-token signer agent protocol"; agent tested with a .p12 |
 | Integration API (`/api/v1/ext`), API keys, idempotency by `internal_id` | Done | API tests + smoke test |
 | Webhooks (transactional outbox, HMAC-SHA256, retries) | Done | API tests |
 | Worker tick (recurring runs, ETA polling, code requests, received sync, webhooks) | Done | runs every 60 s on Node; daily cron on Vercel Hobby |
@@ -100,7 +100,7 @@ Ordered by priority. Each item names where to work and what "done" means.
    not enforced server-side; `users.mfa` column exists). Add reset-by-email and TOTP or email OTP.
 7. **Team invitations.** Inviting creates a member record with status `invited`; there is no acceptance flow. Add an
    invite token, accept page, and email.
-8. **Payments for Fatura's own subscriptions.** Plans, billing models (monthly, yearly, installments, one-time licence),
+8. **Payments for Fattura's own subscriptions.** Plans, billing models (monthly, yearly, installments, one-time licence),
    platform invoices and dunning are modelled and shown in admin, but card/wallet collection is not integrated. Typical
    Egyptian options: Paymob, Fawry, InstaPay/bank transfer reconciliation. Optionally payment links on customer invoices.
 9. **USB signer packaging.** `signer-agent/agent.ts` works (Node + optional `pkcs11js`). Package it for Windows
@@ -126,7 +126,7 @@ Ordered by priority. Each item names where to work and what "done" means.
 ```
 Browser SPA (React) ──/api/v1 (cookie)──►  Hono API  ──► Postgres (or PGlite)
 ERP / scripts ───────/api/v1/ext (Bearer fat_live_…)─►      │
-Fatura Signer (USB) ─/api/v1/signer (Agent fat_agent_…)─►   ├─ services/documents  sign → submit → poll
+Fattura Signer (USB) ─/api/v1/signer (Agent fat_agent_…)─►   ├─ services/documents  sign → submit → poll
                                                             ├─ signing/            CAdES-BES, test certs, jobs
                                                             ├─ eta/http            real ETA (preprod / production)
                                                             ├─ eta/simulator       in-process ETA

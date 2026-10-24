@@ -1,12 +1,12 @@
-# Fatura integration API
+# Fattura integration API
 
 Three ways in, each with its own credential:
 
 | Who | Base path | Credential |
 |---|---|---|
 | ERPs, scripts, accounting systems | `/api/v1/ext` | `Authorization: Bearer fat_live_…` — created in **Settings → API & webhooks** |
-| Fatura Signer (USB token PC) | `/api/v1/signer` | `Authorization: Agent fat_agent_…` — created in **Settings → Signing → Pair a signer** |
-| The Fatura web app | `/api/v1` | HTTP-only session cookie from `POST /api/v1/auth/login` |
+| Fattura Signer (USB token PC) | `/api/v1/signer` | `Authorization: Agent fat_agent_…` — created in **Settings → Signing → Pair a signer** |
+| The Fattura web app | `/api/v1` | HTTP-only session cookie from `POST /api/v1/auth/login` |
 
 Keys and agent tokens are shown once, stored as SHA-256 hashes, and can be revoked at any time.
 All bodies are JSON (UTF-8, Arabic unescaped). Errors look like:
@@ -14,6 +14,25 @@ All bodies are JSON (UTF-8, Arabic unescaped). Errors look like:
 ```json
 { "error": { "code": "validation_failed", "message": "Human-readable reason", "details": [ … ] } }
 ```
+
+## Beta browser-session operations
+
+These endpoints require the HTTP-only web session cookie. They are not part of the ERP bearer-key API.
+
+| Method | Path | Role and purpose |
+|---|---|---|
+| `GET` | `/api/v1/operations/status` | Staff: actual database and queue counts, worker time, release gates; no secrets. |
+| `POST` | `/api/v1/operations/eta/retry-simulator` | Super admin/Support: `{ "tenantId": "…" }`; polls only a simulator tenant. Live ETA is rejected. |
+| `GET` | `/api/v1/operations/audit/export` | Super admin/Support/Finance: downloadable JSON of up to 10,000 latest audit rows. Export action is audited. |
+| `POST` | `/api/v1/operations/billing/{invoiceId}/record-payment` | Super admin/Finance: `{ "method": "bank-transfer" | "cash" | "external-provider", "reference": "…" }`; records independently confirmed evidence, not a charge. |
+| `POST` | `/api/v1/operations/billing/change-request` | Tenant Owner: `{ "model": "monthly" | "yearly" | "one-time" | "installments" }`; persists a pending request without changing current billing. |
+| `POST` | `/api/v1/operations/billing/change-request/{tenantId}/approve` | Super admin/Finance: applies the pending request and audits it. |
+| `GET` | `/api/v1/operations/tenant/export` | Tenant Owner/Admin: downloads own JSON documents and business records, without ETA or signing secrets. |
+| `GET` | `/api/v1/payments/providers` | Tenant user: provider availability. Paymob and Fawry are listed but disabled. |
+| `POST` | `/api/v1/payments/intents` | Tenant Owner/Admin: `{ "invoiceId": "…", "provider": "simulator" }`; requires `PAYMENT_SIMULATOR_ENABLED=true`. |
+| `POST` | `/api/v1/payments/intents/{id}/simulate` | Tenant Owner/Admin: `{ "outcome": "paid" | "failed" }`; test-only, never moves money. |
+
+The test simulator has no card entry or provider checkout. Manual settlement and simulated payment are distinguished in the invoice's payment evidence and audit log. Live Paymob/Fawry contracts, callbacks and reconciliation are release gates; see [Beta plan](BETA-PLAN.md).
 
 ## Documents
 
@@ -38,10 +57,10 @@ Idempotent by `internal_id`: sending the same `internal_id` again returns the ex
 ```
 
 - `type`: `I` invoice, `C` credit note, `D` debit note, `EI` export invoice. Notes need `references` (ETA UUIDs).
-- `customer`: a Fatura customer id, or an inline party `{ "type": "B" | "P" | "F", "id": "…", "name": "…", "address": { … } }`.
-- `lines[].item`: a Fatura item id (code, unit, price and taxes come from the item), or give them inline.
+- `customer`: a Fattura customer id, or an inline party `{ "type": "B" | "P" | "F", "id": "…", "name": "…", "address": { … } }`.
+- `lines[].item`: a Fattura item id (code, unit, price and taxes come from the item), or give them inline.
 - `payment_plan`: omit for one payment; `{ "kind": "one-time", "terms": "net30" }`, recurring or installments.
-  ETA always receives one tax document; the plan drives Fatura's receivables.
+  ETA always receives one tax document; the plan drives Fattura's receivables.
 - `submit: true` runs pre-flight validation, signs (test certificate, HSM or queued for the USB signer) and submits to ETA.
 
 Response `201`:
@@ -63,7 +82,7 @@ Pre-flight failures return `422` with the failing rules in `details` and nothing
 | Method | Path | Notes |
 |---|---|---|
 | `GET` | `/documents?status=Valid,Invalid&direction=sent\|received&issued_from=&issued_to=&limit=50&offset=0` | `{ data, total, limit, offset }` |
-| `GET` | `/documents/{id}` | `id` may be the Fatura id, the ETA UUID or your `internal_id` |
+| `GET` | `/documents/{id}` | `id` may be the Fattura id, the ETA UUID or your `internal_id` |
 | `POST` | `/documents/{id}/submit` | Submit a draft |
 | `POST` | `/documents/{id}/cancel` | `{ "reason": "…" }` — inside ETA's cancellation window |
 | `GET` / `POST` | `/customers` | List / create customers |
@@ -74,10 +93,12 @@ Pre-flight failures return `422` with the failing rules in `details` and nothing
 Register HTTPS endpoints in **Settings → API & webhooks**. Each delivery is a `POST`:
 
 ```
-X-Fatura-Event: document.validated
-X-Fatura-Delivery: evt_…
-X-Fatura-Signature: sha256=<hex HMAC-SHA256 of the raw body with your endpoint secret>
+X-Fattura-Event: document.validated
+X-Fattura-Delivery: evt_…
+X-Fattura-Signature: sha256=<hex HMAC-SHA256 of the raw body with your endpoint secret>
 ```
+
+For existing integrations, deliveries also include the equivalent `X-Fatura-*` headers. New integrations should use `X-Fattura-*`.
 
 Events: `document.submitted`, `document.validated`, `document.invalid`, `document.cancelled`,
 `document.rejected`, `document.cancellation_declined`, `document.rejection_declined`,
@@ -107,7 +128,7 @@ signature. The server verifies it against the tenant's certificate before submit
 `POST /api/cron/tick` (header `Authorization: Bearer $CRON_SECRET`) runs recurring invoices, polls ETA for
 submitted documents, refreshes code requests, syncs received documents and delivers webhooks.
 The Node server runs it every minute; on Vercel it is a cron job.
-## Fatura v2 production submission gate
+## Fattura v2 production submission gate
 
 To submit to **production ETA**, the server operator must set
 `ETA_PRODUCTION_SUBMISSION_ENABLED=true`, and each submit request must explicitly

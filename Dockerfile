@@ -1,4 +1,4 @@
-# Fatura: front end + API + worker in one Node image.
+# Fattura: front end + API + worker in one Node image.
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./

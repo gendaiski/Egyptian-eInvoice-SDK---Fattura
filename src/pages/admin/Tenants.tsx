@@ -28,7 +28,7 @@ export function Tenants() {
   const rows = db.admin.tenants.filter((t) => (!status || t.status === status) && (!plan || t.planId === plan) && (!q || `${t.name} ${t.rin} ${t.owner}`.toLowerCase().includes(q.toLowerCase())));
   return (
     <div className="animate-in">
-      <PageHeader title={L('Tenants', 'الشركات المشتركة')} description={L('Every taxpayer company on Fatura.', 'كل الشركات الممولة على فاتورة.')} />
+      <PageHeader title={L('Tenants', 'الشركات المشتركة')} description={L('Every taxpayer company on Fattura.', 'كل الشركات الممولة على فاتورة.')} />
       <Card pad={false}>
         <div className="flex flex-wrap gap-2 p-4">
           <div className="relative flex-1 min-w-[220px] max-w-[340px]"><Search className="size-4 absolute start-3 top-1/2 -translate-y-1/2 text-ink-subtle" /><Input className="ps-9" value={q} onChange={(e) => setQ(e.target.value)} placeholder={L('Name, RIN or owner', 'الاسم أو الرقم الضريبي أو المالك')} aria-label={L('Search', 'بحث')} /></div>

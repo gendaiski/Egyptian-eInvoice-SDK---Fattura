@@ -6,19 +6,22 @@ import { ACTIVITY_CODES, TAX_TYPES, UNIT_TYPES } from '@/eta/codes';
 import { VALIDATORS } from '@/eta/mockClient';
 import { bi, useI18n } from '@/i18n';
 import { docTotal } from '@/store/model';
-import { useStore } from '@/store/store';
+import { seed } from '@/store/seed';
 import { InvoicePaper } from '@/components/InvoicePaper';
 import { Stamp } from '@/components/Stamp';
 import { LinkButton, Segmented, cx } from '@/components/ui';
 import { ArrowLink, CtaBand, EchoLine, Faq, Section, SectionHead, Wrap } from '../kit';
 
+// The public API bootstrap intentionally contains no tenant invoices. Keep the
+// marketing document independent of signed-in customer data.
+const marketing = seed();
+const sampleInvoice = marketing.docs.find((d) => d.direction === 'sent' && d.status === 'Valid' && d.documentType === 'I' && d.lines.length >= 2) ?? marketing.docs[0];
+
 export function Home() {
-  const { db } = useStore();
   const { L, lang, money, date } = useI18n();
-  const sample = db.docs.find((d) => d.direction === 'sent' && d.status === 'Valid' && d.documentType === 'I' && d.lines.length >= 2) ?? db.docs[0];
   const subtypes = TAX_TYPES.reduce((s, t) => s + t.subTypes.length, 0);
   const [model, setModel] = useState<'one' | 'rec' | 'inst'>('inst');
-  const total = docTotal(sample);
+  const total = docTotal(sampleInvoice);
   const today = new Date().toISOString().slice(0, 10);
   const inst = useMemo(() => buildInstallments(total, { kind: 'installments', count: 4, frequency: 'monthly', firstDueDate: today, downPaymentPct: 25 }), [total, today]);
   const runs = useMemo(() => recurringRuns({ kind: 'recurring', frequency: 'monthly', interval: 1, startDate: today, end: { type: 'never' }, delivery: 'submit_email', terms: 'net30' }, 5), [today]);
@@ -58,9 +61,9 @@ export function Home() {
               <span className="inline-flex items-center gap-2"><span className="size-2 rounded-full bg-accent" />{L('Document preview', 'معاينة المستند')}</span>
               <span className="fatura-v2-stage-demo">{L('Sample · simulator', 'نموذج · محاكاة')}</span>
             </div>
-            <div className="fatura-v2-invoice-frame" aria-label={L('A sample invoice produced by Fatura in the simulator', 'نموذج فاتورة من فاتورة في بيئة المحاكاة')}>
+            <div className="fatura-v2-invoice-frame" aria-label={L('A sample invoice produced by Fattura in the simulator', 'نموذج فاتورة من فاتورة في بيئة المحاكاة')}>
               <div className="[&_.print-area]:shadow-pop pointer-events-none select-none">
-                <InvoicePaper doc={sample} company={db.company} env="simulator" />
+                <InvoicePaper doc={sampleInvoice} company={marketing.company} env="simulator" />
               </div>
             </div>
             <div className="fatura-v2-stage-bottomline"><CheckCircle2 className="size-4 text-accent" />{L('From draft to a traceable document', 'من المسودة إلى مستند قابل للتتبع')}</div>
@@ -85,7 +88,7 @@ export function Home() {
 
       {/* Lifecycle: a real sequence, so numbering is information */}
       <Section>
-        <SectionHead title={L('Every document, from draft to Valid', 'كل مستند، من المسودة إلى الاعتماد')} lead={L('The same four steps ETA runs. Fatura shows you where each document is, and why — before your customer asks.', 'نفس الخطوات الأربع لدى المصلحة. فاتورة توضح لك أين يقف كل مستند ولماذا.')} />
+        <SectionHead title={L('Every document, from draft to Valid', 'كل مستند، من المسودة إلى الاعتماد')} lead={L('The same four steps ETA runs. Fattura shows you where each document is, and why — before your customer asks.', 'نفس الخطوات الأربع لدى المصلحة. فاتورة توضح لك أين يقف كل مستند ولماذا.')} />
         <ol className="grid gap-px rounded-card overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {[
             [L('Draft', 'مسودة'), L('Built in the composer with the official tax maths. Pre-flight runs the ETA rules as you type.', 'تُبنى بقواعد الحساب الرسمية ويُفحص المستند أثناء الكتابة.'), <CheckCircle2 key="a" />],
@@ -120,7 +123,7 @@ export function Home() {
           <div className="card p-6 sm:p-8 animate-in" key={model}>
             {model === 'one' && (
               <div>
-                <div className="text-[13px] text-ink-muted">{sample.internalID} · {sample.counterparty.name}</div>
+                <div className="text-[13px] text-ink-muted">{sampleInvoice.internalID} · {sampleInvoice.counterparty.name}</div>
                 <div className="mt-1 font-display text-[34px] font-semibold tabular">{money(total)}</div>
                 <div className="mt-6 grid grid-cols-3 gap-3 text-[13px]">
                   {[['net15', 15], ['net30', 30], ['net60', 60]].map(([t, d]) => { const due = new Date(); due.setDate(due.getDate() + (d as number)); return (
@@ -221,9 +224,9 @@ export function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
           <SectionHead className="mb-0" title={L('Questions finance teams ask first', 'أول أسئلة الفرق المالية')} lead={<>{L('More in the', 'المزيد في')} <Link className="link" to="/eta-guide">{L('ETA guide', 'دليل المصلحة')}</Link>.</>} />
           <Faq items={[
-            [L('Do I need my own ETA credentials?', 'هل أحتاج بيانات ربط خاصة بي؟'), L('Yes. Each taxpayer registers Fatura as an ERP on the ETA portal and gets a client ID and secret. Setup walks you through it.', 'نعم. كل ممول يسجل فاتورة كنظام ERP ويحصل على معرّف وسر، والإعداد يرشدك.')],
+            [L('Do I need my own ETA credentials?', 'هل أحتاج بيانات ربط خاصة بي؟'), L('Yes. Each taxpayer registers Fattura as an ERP on the ETA portal and gets a client ID and secret. Setup walks you through it.', 'نعم. كل ممول يسجل فاتورة كنظام ERP ويحصل على معرّف وسر، والإعداد يرشدك.')],
             [L('Can recurring invoices go out while I am away?', 'هل تُرسل الفواتير المتكررة في غيابي؟'), L('With cloud or HSM signing, yes. With a USB token, runs wait as drafts until the signer is online and you get a notification.', 'مع التوقيع السحابي نعم. مع التوكن تنتظر كمسودات حتى يتصل البرنامج.')],
-            [L('How are installments taxed?', 'كيف تُحتسب ضريبة الأقساط؟'), L('VAT is due on issue, so ETA receives one invoice for the full amount and Fatura tracks the installments as receivables.', 'الضريبة مستحقة عند الإصدار، فتصدر فاتورة واحدة وتُتابع الأقساط كمستحقات.')],
+            [L('How are installments taxed?', 'كيف تُحتسب ضريبة الأقساط؟'), L('VAT is due on issue, so ETA receives one invoice for the full amount and Fattura tracks the installments as receivables.', 'الضريبة مستحقة عند الإصدار، فتصدر فاتورة واحدة وتُتابع الأقساط كمستحقات.')],
             [L('What if ETA marks a document Invalid?', 'ماذا لو اعتُبر المستند غير صالح؟'), L('You see the failing validator and field. One click creates a corrected copy to resubmit; the invalid one stays on record.', 'ترى سبب الرفض والحقل. بنقرة تنشئ نسخة مصححة لإعادة الإرسال.')],
           ]} />
         </div>

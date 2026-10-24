@@ -11,7 +11,7 @@ export interface SignItem { docId: string; canonical: string; digest: string; ta
 /**
  * Signs documents with the tenant's configured method.
  * - test-certificate: signs immediately on the server (simulator / pre-production trials only).
- * - usb-token: queues a signing job for the paired Fatura Signer agent; returns null (async).
+ * - usb-token: queues a signing job for the paired Fattura Signer agent; returns null (async).
  * - hsm / cloud: provider connectors are configured per contract; not available in this build.
  */
 export async function signOrQueue(db: Db, tenantId: string, docs: { id: string; eta: EtaDocument }[], confirmProduction = false): Promise<Map<string, string> | null> {

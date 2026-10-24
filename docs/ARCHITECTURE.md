@@ -6,7 +6,7 @@
 > reminders and reference-data sync are not built yet. See `docs/HANDOFF.md` for the current state.
 
 ```
-Browser (this SPA) ──HTTPS──► Fatura API (multi-tenant)
+Browser (this SPA) ──HTTPS──► Fattura API (multi-tenant)
                                  │
                                  ├─ Postgres (tenants, documents, plans, payments, audit; row-level tenant isolation)
                                  ├─ Queue + workers
@@ -17,7 +17,7 @@ Browser (this SPA) ──HTTPS──► Fatura API (multi-tenant)
                                  │    • reminders       → due / overdue installments (email, WhatsApp)
                                  │    • refdata-sync    → SDK code tables nightly
                                  ├─ Secrets (KMS): per-tenant ETA client secret, never sent to the browser
-                                 └─ Signer gateway (WebSocket) ◄── Fatura Signer agent on the customer PC (USB token, PKCS#11)
+                                 └─ Signer gateway (WebSocket) ◄── Fattura Signer agent on the customer PC (USB token, PKCS#11)
                                                               ◄── HSM / cloud eSeal connectors
 ```
 
@@ -33,9 +33,9 @@ Browser (this SPA) ──HTTPS──► Fatura API (multi-tenant)
   read-only, time-boxed and written to the audit log.
 - **Retention.** Submitted JSON, signatures, validation results and PDFs are kept for 5 years.
   Export is available even when an account is suspended.
-- **Fatura's own billing.** Plans sold monthly, yearly, as installments or as a one-time licence.
-  Every platform invoice is itself issued as a valid ETA invoice from Fatura's own RIN.
+- **Fattura's own billing.** Plans sold monthly, yearly, as installments or as a one-time licence.
+  Every platform invoice is itself issued as a valid ETA invoice from Fattura's own RIN.
 
 ## Front-end contract
-`src/eta/client.ts` (`EtaClient`) lists the operations. The SPA calls Fatura's REST API with the same
+`src/eta/client.ts` (`EtaClient`) lists the operations. The SPA calls Fattura's REST API with the same
 shapes, and `src/store/store.tsx#useActions` is the single place to swap the mock for real HTTP calls.
