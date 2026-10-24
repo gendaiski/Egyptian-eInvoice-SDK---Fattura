@@ -25,6 +25,8 @@ const schema = z.object({
   /** Override ETA hosts (used by tests and for the SIT environment). */
   ETA_ID_URL: z.string().optional(),
   ETA_API_URL: z.string().optional(),
+  /** Operator gate. Production submissions also require confirmation on each request. */
+  ETA_PRODUCTION_SUBMISSION_ENABLED: z.enum(['true', 'false']).default('false'),
 });
 
 export type Env = z.infer<typeof schema>;

@@ -48,6 +48,13 @@ ArrowLink, CtaBand, Faq, EchoLine (the headline's counterpart in the other langu
 A tax-office seal with bilingual ring text. Use it once per marketing page and for success moments
 (valid document, request received). Never as decoration on working screens.
 
+## V2 entry surfaces
+
+- The home hero frames an actual `InvoicePaper` component as a document preview. A visible simulator label and an on-paper notice distinguish sample data from an ETA-registered invoice; simulator documents do not print a public ETA verification QR.
+- The taxpayer dashboard opens with a status summary drawn from the existing document data, followed by actionable exception cards, financial measures and the original charts. At mobile widths its recent documents show status and total directly in each row.
+- Both surfaces use the same token values in light/dark mode and logical layout for Arabic RTL. The public header keeps the light/dark icon visible on mobile.
+- The invoice composer has a section navigator for document, customer, lines, payment and review. Validation messages take the user to the affected section. On mobile the section navigator scrolls horizontally and the Save/Submit bar remains fixed above the safe area.
+
 ## Voice
 Plain and specific, from the user's side: "Sign & submit to ETA", not "Process document"; explain errors
 with the rule and the fix ("Individuals need a 14-digit national ID at EGP 50,000 or more"), never codes alone.

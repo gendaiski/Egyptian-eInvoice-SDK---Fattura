@@ -34,26 +34,37 @@ export function Home() {
 
   return (
     <>
-      {/* Hero: the thesis is the valid document itself */}
-      <section className="pt-12 sm:pt-20 pb-16">
-        <Wrap className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.02fr)] items-center">
-          <div>
-            <h1 className="text-display-xl">{L('Egyptian e‑invoicing, done properly.', 'الفاتورة الإلكترونية، كما يجب.')}</h1>
+      {/* The document remains the hero; the frame makes its demo status explicit. */}
+      <section className="fatura-v2-hero">
+        <Wrap className="fatura-v2-hero-grid">
+          <div className="fatura-v2-hero-copy">
+            <div className="fatura-v2-hero-kicker"><span className="size-2 rounded-full bg-accent" />{L('THE EGYPTIAN INVOICING WORKSPACE', 'مساحة الفوترة الإلكترونية المصرية')}</div>
+            <h1 className="text-display-xl max-w-[12ch]">{L('Egyptian e‑invoicing, done properly.', 'الفاتورة الإلكترونية، كما يجب.')}</h1>
             <EchoLine en="Egyptian e-invoicing, done properly." ar="الفاتورة الإلكترونية المصرية، كما يجب." />
-            <p className="mt-6 text-lead text-ink-muted max-w-[46ch]">{L('Issue ETA-valid invoices in Arabic and English, sign with your token, and get paid once, monthly or in installments.', 'أصدر فواتير معتمدة من المصلحة بالعربية والإنجليزية، ووقّع بالتوكن، واستلم دفعة واحدة أو شهرياً أو بالتقسيط.')}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <LinkButton to="/signup" variant="primary" size="lg">{L('Start free trial', 'ابدأ التجربة المجانية')}</LinkButton>
-              <LinkButton to="/app" size="lg" icon={<ArrowRight className="size-4 rtl:rotate-180" />}>{L('Open the live demo', 'افتح العرض الحي')}</LinkButton>
+            <p className="mt-6 text-lead text-ink-muted max-w-[44ch]">{L('Prepare, sign and follow every invoice in one place. Work in Arabic or English, then manage collections on your terms.', 'أنشئ الفواتير ووقّعها وتابعها في مكان واحد. اعمل بالعربية أو الإنجليزية ثم نظّم تحصيلك بالطريقة التي تناسبك.')}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <LinkButton to="/signup" variant="primary" size="lg" icon={<ArrowRight className="size-4 rtl:rotate-180" />}>{L('Start free trial', 'ابدأ التجربة المجانية')}</LinkButton>
+              <LinkButton to="/app" size="lg">{L('Explore the workspace', 'استكشف مساحة العمل')}</LinkButton>
             </div>
             <p className="mt-4 text-[13px] text-ink-subtle">{L('14 days on ETA pre-production. No card needed.', '١٤ يوماً على بيئة الاختبار. بدون بطاقة.')}</p>
+            <div className="fatura-v2-hero-proof" aria-label={L('Workspace capabilities', 'إمكانات مساحة العمل')}>
+              <span><CheckCircle2 className="size-4 text-accent" />{L('Validate before sending', 'تحقق قبل الإرسال')}</span>
+              <span><KeyRound className="size-4 text-accent" />{L('Sign with your token', 'وقّع بالتوكن')}</span>
+              <span><CalendarRange className="size-4 text-accent" />{L('Track every payment', 'تابع كل دفعة')}</span>
+            </div>
           </div>
-          <div className="relative">
-            <div className="relative [&_.print-area]:shadow-pop pointer-events-none select-none" aria-label={L('A sample invoice produced by Fatura', 'نموذج فاتورة من فاتورة')}>
-              <InvoicePaper doc={sample} company={db.company} env="production" />
+          <div className="fatura-v2-document-stage">
+            <div className="fatura-v2-stage-topline">
+              <span className="inline-flex items-center gap-2"><span className="size-2 rounded-full bg-accent" />{L('Document preview', 'معاينة المستند')}</span>
+              <span className="fatura-v2-stage-demo">{L('Sample · simulator', 'نموذج · محاكاة')}</span>
             </div>
-            <div className="absolute -bottom-10 -start-4 sm:-start-10 rotate-[-12deg] drop-shadow-[0_6px_16px_rgb(var(--shadow)/.18)] bg-canvas rounded-full">
-              <Stamp size={128} />
+            <div className="fatura-v2-invoice-frame" aria-label={L('A sample invoice produced by Fatura in the simulator', 'نموذج فاتورة من فاتورة في بيئة المحاكاة')}>
+              <div className="[&_.print-area]:shadow-pop pointer-events-none select-none">
+                <InvoicePaper doc={sample} company={db.company} env="simulator" />
+              </div>
             </div>
+            <div className="fatura-v2-stage-bottomline"><CheckCircle2 className="size-4 text-accent" />{L('From draft to a traceable document', 'من المسودة إلى مستند قابل للتتبع')}</div>
+            <div className="fatura-v2-stage-seal" aria-hidden="true"><Stamp size={108} /></div>
           </div>
         </Wrap>
       </section>

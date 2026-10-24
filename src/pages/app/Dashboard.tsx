@@ -6,7 +6,7 @@ import { useI18n } from '@/i18n';
 import { docTotal, docVat, dueInfo } from '@/store/model';
 import { useStore } from '@/store/store';
 import { BarChart, StackedMeter } from '@/components/charts';
-import { Card, LinkButton, Money, PageHeader, Stat, StatusBadge, Table, Td, Th, cx } from '@/components/ui';
+import { Card, LinkButton, Money, Stat, StatusBadge, Table, Td, Th, cx } from '@/components/ui';
 import { useLabels } from './shared';
 
 const monthKey = (iso: string) => iso.slice(0, 7);
@@ -76,14 +76,24 @@ export function Dashboard() {
 
   return (
     <div className="animate-in">
-      <PageHeader
-        title={hour < 12 ? L(`Good morning, ${first}`, `صباح الخير يا ${first}`) : L(`Good afternoon, ${first}`, `مساء الخير يا ${first}`)}
-        description={L(`${db.company.name} · ${date(new Date().toISOString(), 'long')}`, `${db.company.nameAr} · ${date(new Date().toISOString(), 'long')}`)}
-        actions={<>
-          <LinkButton to="/app/documents?status=Draft" icon={<PenLine className="size-4" />}>{L('Drafts', 'المسودات')} ({drafts.length})</LinkButton>
-          <LinkButton to="/app/documents/new" variant="primary" icon={<Plus className="size-4" />}>{L('New invoice', 'فاتورة جديدة')}</LinkButton>
-        </>}
-      />
+      <section className="fatura-v2-workspace-intro" aria-labelledby="workspace-title">
+        <div className="relative z-10 min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-accent-on/70">{L('YOUR WORKSPACE · TODAY', 'مساحة عملك · اليوم')}</p>
+          <h1 id="workspace-title" className="mt-2 font-display text-[27px] sm:text-[34px] leading-tight text-accent-on">
+            {hour < 12 ? L(`Good morning, ${first}`, `صباح الخير يا ${first}`) : L(`Good afternoon, ${first}`, `مساء الخير يا ${first}`)}
+          </h1>
+          <p className="mt-1 text-[13.5px] text-accent-on/80">{L(`${db.company.name} · ${date(new Date().toISOString(), 'long')}`, `${db.company.nameAr} · ${date(new Date().toISOString(), 'long')}`)}</p>
+          <dl className="fatura-v2-workspace-facts">
+            <div><dt>{L('Submitted · 30 days', 'المُرسل · ٣٠ يوماً')}</dt><dd>{stats.recent.length}</dd></div>
+            <div><dt>{L('Drafts', 'المسودات')}</dt><dd>{drafts.length}</dd></div>
+            <div><dt>{L('Needs attention', 'يحتاج انتباهك')}</dt><dd>{tasks.length}</dd></div>
+          </dl>
+        </div>
+        <div className="relative z-10 flex flex-wrap gap-2 self-start lg:self-end">
+          <LinkButton to="/app/documents?status=Draft" icon={<PenLine className="size-4" />} className="fatura-v2-workspace-secondary">{L('Open drafts', 'فتح المسودات')}</LinkButton>
+          <LinkButton to="/app/documents/new" icon={<Plus className="size-4" />} className="fatura-v2-workspace-primary">{L('New invoice', 'فاتورة جديدة')}</LinkButton>
+        </div>
+      </section>
 
       {tasks.length > 0 && (
         <section aria-label={L('Needs attention', 'تحتاج انتباهك')} className="mb-6">
@@ -133,19 +143,34 @@ export function Dashboard() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2" pad={false} title={L('Recent documents', 'أحدث المستندات')} action={<Link to="/app/documents" className="text-[13px] font-medium link">{L('View all', 'عرض الكل')}</Link>}>
-          <Table>
-            <thead><tr><Th>{L('Number', 'الرقم')}</Th><Th>{L('Customer', 'العميل')}</Th><Th>{L('Status', 'الحالة')}</Th><Th align="end">{L('Total', 'الإجمالي')}</Th></tr></thead>
-            <tbody>
-              {sent.slice(0, 7).map((d) => (
-                <tr key={d.id} className="hover:bg-sunken/50">
-                  <Td className="whitespace-nowrap"><Link to={`/app/documents/${d.id}`} className="font-medium text-ink hover:text-accent">{d.internalID}</Link><div className="text-[12px] text-ink-subtle">{lb.docType(d.documentType)} · {date(d.issuedAt)}</div></Td>
-                  <Td className="max-w-[220px]"><div className="truncate">{d.counterparty.name}</div></Td>
-                  <Td><StatusBadge status={d.status} /></Td>
-                  <Td align="end"><Money value={docTotal(d)} /></Td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+          <ul className="sm:hidden divide-y divide-line" aria-label={L('Recent documents', 'أحدث المستندات')}>
+            {sent.slice(0, 7).map((d) => (
+              <li key={d.id}>
+                <Link to={`/app/documents/${d.id}`} className="block px-5 py-3.5 hover:bg-sunken/50">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0"><div className="font-semibold text-ink truncate">{d.internalID}</div><div className="text-[12px] text-ink-subtle">{lb.docType(d.documentType)} · {date(d.issuedAt)}</div></div>
+                    <StatusBadge status={d.status} />
+                  </div>
+                  <div className="mt-2 flex items-end justify-between gap-3 text-[13px]"><span className="truncate text-ink-muted">{d.counterparty.name}</span><Money value={docTotal(d)} className="font-semibold shrink-0" /></div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden sm:block">
+            <Table>
+              <thead><tr><Th>{L('Number', 'الرقم')}</Th><Th>{L('Customer', 'العميل')}</Th><Th>{L('Status', 'الحالة')}</Th><Th align="end">{L('Total', 'الإجمالي')}</Th></tr></thead>
+              <tbody>
+                {sent.slice(0, 7).map((d) => (
+                  <tr key={d.id} className="hover:bg-sunken/50">
+                    <Td className="whitespace-nowrap"><Link to={`/app/documents/${d.id}`} className="font-medium text-ink hover:text-accent">{d.internalID}</Link><div className="text-[12px] text-ink-subtle">{lb.docType(d.documentType)} · {date(d.issuedAt)}</div></Td>
+                    <Td className="max-w-[220px]"><div className="truncate">{d.counterparty.name}</div></Td>
+                    <Td><StatusBadge status={d.status} /></Td>
+                    <Td align="end"><Money value={docTotal(d)} /></Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
         </Card>
         <Card title={L('Coming up', 'القادم')} subtitle={L('Recurring runs and installments, next 3 weeks', 'الفواتير المتكررة والأقساط خلال ٣ أسابيع')}>
           {upcoming.length === 0 ? <p className="text-ink-muted">{L('Nothing scheduled.', 'لا يوجد شيء مجدول.')}</p> : (

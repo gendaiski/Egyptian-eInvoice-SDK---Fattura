@@ -92,13 +92,14 @@ ext.post('/documents', async (c) => {
     issuedAt: b.issued_at ?? new Date().toISOString(), lines, extraDiscount: 0, references: b.references, poRef: b.po_ref, notes: b.notes, plan, payments: [], events: [],
   };
   let doc = await saveDraft(db, tenantId, draft, `API · ${c.get('keyName')}`);
-  if (b.submit) { await submitDocuments(db, tenantId, [doc.id], `API · ${c.get('keyName')}`); doc = (await r.doc(tenantId, doc.id))!; }
+  if (b.submit) { await submitDocuments(db, tenantId, [doc.id], `API · ${c.get('keyName')}`, b.confirm_production === true); doc = (await r.doc(tenantId, doc.id))!; }
   return c.json(view(doc), 201);
 });
 
 ext.post('/documents/:id/submit', async (c) => {
   const db = await getDb();
-  await submitDocuments(db, c.get('tenantId'), [c.req.param('id')], `API · ${c.get('keyName')}`);
+  const request = await c.req.json().catch(() => ({}));
+  await submitDocuments(db, c.get('tenantId'), [c.req.param('id')], `API · ${c.get('keyName')}`, request.confirm_production === true);
   return c.json(view((await repo(db).doc(c.get('tenantId'), c.req.param('id')))!));
 });
 ext.post('/documents/:id/cancel', async (c) => {

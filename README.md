@@ -3,6 +3,13 @@
 Egyptian e-invoicing SaaS built on the Egyptian Tax Authority (ETA) eInvoicing SDK.
 This repository contains the **whole product**:
 
+> **Fatura v2 review branch:** `codex/fattura-egypt-v2` makes production ETA submissions
+> opt-in at both server and request level. The independent [Meridian M&A system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is reviewed in Sandbox-2, with its own server, data and UI. See the
+> [v2 source audit](docs/V2-SOURCE-AUDIT.md) for verified scope and blockers. The existing
+> production deployment remains on its original branch.
+
+Compare the original branch with the v2 review build in the [Fattura v1–v2 comparison table](docs/V1-V2-COMPARISON.md).
+
 - **Front end** — the public website (15 pages), the taxpayer workspace, the Fatura platform admin panel,
   sign-in and onboarding, one app sharing one design system.
 - **Back end** — a Node API (Hono) on Postgres: accounts and tenants, the sign → submit → poll document
@@ -29,6 +36,14 @@ npm run build:server && VITE_DATA=api npx vite build
 npm run start                    # http://localhost:8787
 ```
 
+For an independent Fatura v2 local review, use a fresh data directory rather than the existing `.data`:
+
+```bash
+PGLITE_DIR=./.data-v2-review PORT=8788 npm run start
+```
+
+The independent [Meridian M&A system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is reviewed separately in Sandbox-2. It does not share Fatura routes, credentials, database, design system or process.
+
 Development: `npm run dev:server` (API on :8787) and `VITE_DATA=api npm run dev` (Vite on :5173 proxies /api).
 With Docker and a real Postgres: `docker compose up --build`. Configuration: see `.env.example`.
 
@@ -41,7 +56,7 @@ New sign-ups get their own tenant on the ETA simulator; switch to pre-production
 Settings → ETA connection once you have ETA ERP credentials.
 
 ```bash
-npm test               # 41 tests: tax maths, serialization, validation, schedules, API, signing, ETA client
+npm test               # 42 tests: tax maths, serialization, validation, schedules, API, signing, ETA client, production guard
 npm run typecheck
 npm run build:preview  # single-file browser-only demo with a guided test-scenario panel (dist-preview/fatura.html)
 npm run build:vercel   # Vercel Build Output (.vercel/output)

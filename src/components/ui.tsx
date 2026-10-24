@@ -89,9 +89,9 @@ export function PageHeader({ title, description, actions, back }: { title: React
   );
 }
 
-export function Card({ children, className, title, action, pad = true, subtitle }: { children: ReactNode; className?: string; title?: ReactNode; subtitle?: ReactNode; action?: ReactNode; pad?: boolean }) {
+export function Card({ children, className, id, title, action, pad = true, subtitle }: { children: ReactNode; className?: string; id?: string; title?: ReactNode; subtitle?: ReactNode; action?: ReactNode; pad?: boolean }) {
   return (
-    <section className={cx('card', className)}>
+    <section id={id} className={cx('card', className)}>
       {(title || action) && (
         <header className="flex items-center justify-between gap-3 px-5 pt-4 pb-3">
           <div className="min-w-0">

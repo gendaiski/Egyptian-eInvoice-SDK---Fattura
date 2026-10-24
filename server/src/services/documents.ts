@@ -5,6 +5,7 @@ import { serializeForSigning } from '../../../src/eta/serialize';
 import { docTotal, formatNumber, toEtaDocument, type Doc, type PaymentRecord, type Recurring } from '../../../src/store/model';
 import type { Db } from '../db/client';
 import { newId } from '../crypto';
+import { env } from '../env';
 import { etaFor } from '../eta';
 import { EtaApiError } from '../eta/types';
 import { HttpError } from '../http';
@@ -51,9 +52,13 @@ export async function saveDraft(db: Db, tenantId: string, input: Doc, by: string
  * Sign → submit → first poll. Documents must be drafts and pass pre-flight. With a USB token the
  * documents wait in `Signing` until the agent returns signatures (see completeSigning).
  */
-export async function submitDocuments(db: Db, tenantId: string, ids: string[], by: string) {
+export async function submitDocuments(db: Db, tenantId: string, ids: string[], by: string, confirmProduction = false) {
   const r = repo(db);
   const cfg = await r.config(tenantId);
+  if (cfg.integration.env === 'production') {
+    if (env().ETA_PRODUCTION_SUBMISSION_ENABLED !== 'true') throw new HttpError(403, 'production_disabled', 'Production ETA submissions are disabled by the server operator. Use the simulator or pre-production until explicitly enabled.');
+    if (!confirmProduction) throw new HttpError(409, 'production_confirmation_required', 'Confirm this production ETA submission explicitly. Automated recurring submissions remain drafts.');
+  }
   const docs = (await Promise.all(ids.map((id) => r.doc(tenantId, id)))).filter((d): d is Doc => !!d);
   if (docs.length !== ids.length) throw new HttpError(404, 'not_found', 'One or more documents were not found.');
   const notDraft = docs.filter((d) => d.status !== 'Draft');
@@ -73,21 +78,24 @@ export async function submitDocuments(db: Db, tenantId: string, ids: string[], b
     await r.putDoc(tenantId, doc);
   }
   let signatures: Map<string, string> | null;
-  try { signatures = await signOrQueue(db, tenantId, prepared.map((p) => ({ id: p.doc.id, eta: p.eta }))); } catch (e) {
+  try { signatures = await signOrQueue(db, tenantId, prepared.map((p) => ({ id: p.doc.id, eta: p.eta })), confirmProduction); } catch (e) {
     for (const { doc } of prepared) { doc.status = 'Draft'; await r.putDoc(tenantId, doc); }
     throw e;
   }
   if (!signatures) return { queued: true, documents: prepared.map((p) => p.doc) };
-  return { queued: false, ...(await submitSigned(db, tenantId, prepared.map((p) => ({ doc: p.doc, eta: p.eta, signature: signatures!.get(p.doc.id)! })), by)) };
+  return { queued: false, ...(await submitSigned(db, tenantId, prepared.map((p) => ({ doc: p.doc, eta: p.eta, signature: signatures!.get(p.doc.id)! })), by, confirmProduction)) };
 }
 
 /** Called when the signer agent returns signatures for a queued job. */
 export async function completeSigning(db: Db, tenantId: string, jobId: string, signatures: { docId: string; value: string }[]) {
   const r = repo(db);
-  const [job] = await db.query<{ items: { docId: string; canonical: string }[]; status: string }>('SELECT items, status FROM signing_jobs WHERE id = $1 AND tenant_id = $2', [jobId, tenantId]);
+  const [job] = await db.query<{ items: { docId: string; canonical: string; targetEnv?: string; productionConfirmed?: boolean }[]; status: string }>('SELECT items, status FROM signing_jobs WHERE id = $1 AND tenant_id = $2', [jobId, tenantId]);
   if (!job) throw new HttpError(404, 'not_found', 'Signing job not found.');
   if (job.status === 'done') return { alreadyDone: true };
   const cfg = await r.config(tenantId);
+  if (job.items.some((item) => item.targetEnv && item.targetEnv !== cfg.integration.env)) throw new HttpError(409, 'environment_changed', 'ETA environment changed while this signing job was pending. Review and queue a new submission.');
+  if (cfg.integration.env === 'production' && job.items.some((item) => item.targetEnv !== 'production' || !item.productionConfirmed)) throw new HttpError(409, 'production_confirmation_required', 'This pending signing job was not confirmed for production ETA. No document was sent.');
+  if (cfg.integration.env === 'production' && env().ETA_PRODUCTION_SUBMISSION_ENABLED !== 'true') throw new HttpError(403, 'production_disabled', 'Production ETA submissions are disabled by the server operator.');
   const batch: { doc: Doc; eta: EtaDocument; signature: string }[] = [];
   for (const it of job.items) {
     const sig = signatures.find((s) => s.docId === it.docId);
@@ -100,11 +108,15 @@ export async function completeSigning(db: Db, tenantId: string, jobId: string, s
     batch.push({ doc, eta, signature: sig.value });
   }
   await db.query("UPDATE signing_jobs SET status = 'done', completed_at = now() WHERE id = $1", [jobId]);
-  return submitSigned(db, tenantId, batch, 'Fatura Signer');
+  return submitSigned(db, tenantId, batch, 'Fatura Signer', cfg.integration.env === 'production' && job.items.every((item) => item.productionConfirmed));
 }
 
-async function submitSigned(db: Db, tenantId: string, batch: { doc: Doc; eta: EtaDocument; signature: string }[], by: string) {
+async function submitSigned(db: Db, tenantId: string, batch: { doc: Doc; eta: EtaDocument; signature: string }[], by: string, confirmedProduction = false) {
   const r = repo(db);
+  if ((await r.config(tenantId)).integration.env === 'production') {
+    if (env().ETA_PRODUCTION_SUBMISSION_ENABLED !== 'true') throw new HttpError(403, 'production_disabled', 'Production ETA submissions were disabled before signing completed. No invoice was sent.');
+    if (!confirmedProduction) throw new HttpError(409, 'production_confirmation_required', 'This submission was not confirmed for production ETA. No invoice was sent.');
+  }
   const eta = await etaFor(db, tenantId).catch(mapEtaError);
   const started = Date.now();
   let res;

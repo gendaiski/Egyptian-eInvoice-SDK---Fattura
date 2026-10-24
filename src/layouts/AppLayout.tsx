@@ -9,19 +9,19 @@ import { cx, LinkButton } from '@/components/ui';
 import { Shell, type NavGroup, type PaletteEntry } from './Shell';
 
 export function EnvPill() {
-  const { db } = useStore();
+  const { db, mode } = useStore();
   const { L } = useI18n();
   const prod = db.integration.env === 'production';
   return (
     <Link to="/app/settings/integration" className={cx('hidden md:inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border text-[12px] font-medium',
-      prod ? 'border-ok/25 bg-ok-soft text-ok' : 'border-warn/30 bg-warn-soft text-warn')} title={L('ETA environment', 'بيئة المصلحة')}>
-      <Server className="size-3.5" />{prod ? L('ETA production', 'إنتاج المصلحة') : db.integration.env === 'simulator' ? L('ETA simulator', 'محاكي المصلحة') : L('ETA pre-production', 'بيئة الاختبار')}
+      mode === 'local' ? 'border-info/25 bg-info-soft text-info' : prod ? 'border-ok/25 bg-ok-soft text-ok' : 'border-warn/30 bg-warn-soft text-warn')} title={mode === 'local' ? L('Browser demo; no live ETA connection', 'عرض تجريبي في المتصفح دون اتصال حي بالمصلحة') : L('ETA environment', 'بيئة المصلحة')}>
+      <Server className="size-3.5" />{mode === 'local' ? L('Demo · no live ETA', 'عرض · دون اتصال حي') : prod ? L('ETA production', 'إنتاج المصلحة') : db.integration.env === 'simulator' ? L('ETA simulator', 'محاكي المصلحة') : L('ETA pre-production', 'بيئة الاختبار')}
     </Link>
   );
 }
 
 function SignerPill() {
-  const { db } = useStore();
+  const { db, mode } = useStore();
   const { L } = useI18n();
   const cert = db.signing.method === 'test-certificate';
   const on = cert || db.signing.agent.status === 'online';
@@ -30,7 +30,7 @@ function SignerPill() {
       title={L('Signing agent', 'وكيل التوقيع')}>
       <Usb className="size-3.5" />
       <span className={cx('size-1.5 rounded-full', on ? 'bg-ok' : 'bg-bad')} />
-      {cert ? L('Test certificate', 'شهادة اختبار') : on ? L('Signer online', 'التوقيع متصل') : L('Signer offline', 'التوقيع غير متصل')}
+      {mode === 'local' ? L('Demo signer', 'توقيع تجريبي') : cert ? L('Test certificate', 'شهادة اختبار') : on ? L('Signer online', 'التوقيع متصل') : L('Signer offline', 'التوقيع غير متصل')}
     </Link>
   );
 }

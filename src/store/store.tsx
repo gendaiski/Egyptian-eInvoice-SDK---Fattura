@@ -4,6 +4,7 @@ import { DATA_MODE } from '@/env';
 import { mockEta } from '@/eta/mockClient';
 import { serializeForSigning } from '@/eta/serialize';
 import { api, reportApiError } from '@/lib/api';
+import { useI18n } from '@/i18n';
 import { docTotal, formatNumber, toEtaDocument, uid, type DB, type Doc, type PaymentRecord } from './model';
 import { seed } from './seed';
 import { syncDiff } from './sync';
@@ -108,6 +109,7 @@ const nowISO = () => new Date().toISOString();
 
 /** All writes go through these actions so the audit trail (doc.events) stays complete. */
 export function useActions() {
+  const { L } = useI18n();
   const store = useStore();
   const { db, set, setLocal, get, reload, mode } = store;
   const dbRef = { get current() { return get(); } };
@@ -146,8 +148,10 @@ export function useActions() {
           catch (e) { reportApiError(e); await reload(); throw e; }
         },
         submit: async (ids: string[]) => {
+          const production = get().integration.env === 'production';
+          if (production && !window.confirm(L('Send these documents to the live Egyptian Tax Authority? This action cannot be undone here.', 'هل تريد إرسال هذه المستندات إلى مصلحة الضرائب المصرية الفعلية؟ لا يمكن التراجع عن هذا الإجراء هنا.'))) return undefined;
           setLocal((x) => { for (const d of x.docs) if (ids.includes(d.id)) d.status = 'Signing'; });
-          return run(() => api('POST', '/actions/documents/submit', { ids }));
+          return run(() => api('POST', '/actions/documents/submit', { ids, confirmProduction: production }));
         },
         deleteDraft: async (id: string) => { setLocal((x) => { x.docs = x.docs.filter((d) => d.id !== id); }); await run(() => api('DELETE', `/data/docs/${id}`)); },
         cancel: state('cancel'),
@@ -275,7 +279,7 @@ export function useActions() {
       markAllRead: () => set((x) => { x.notices.forEach((n) => { n.read = true; }); }),
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [set, setLocal, get, reload, me, mode]);
+  }, [set, setLocal, get, reload, me, mode, L]);
 }
 
 /** Sign-in, sign-up, onboarding and sign-out, for both data modes. */
