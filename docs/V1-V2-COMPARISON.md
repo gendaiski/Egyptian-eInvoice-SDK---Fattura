@@ -19,6 +19,77 @@
 | Verification recorded | The v1 handoff records 41 tests and 12 smoke checks on PGlite and Postgres. These are historical results, not a fresh v1 run for this table. | On 24 October, `npm run typecheck`, 42 tests, the Vercel build and local desktop/mobile browser checks passed. The added test covers the production guard. | [v1 handoff](HANDOFF.md) · [v2 handover](V2-HANDOVER.md). |
 | Hosted data and access | Vercel production URL responds, but a durable database and a current end-to-end hosted workflow are not verified here. | Vercel preview build passed but is protected by Vercel Authentication; hosted workflow and persistence remain **NOT VERIFIED**. | Both versions need a configured durable `DATABASE_URL` for reliable hosted data; temporary PGlite is only suitable for quick tests. |
 
+## Coding and architecture
+
+The labels in the last column distinguish **changed in v2**, **existing in both**, **partial**, and **not verified**. They are evidence states, not arbitrary completion percentages. The diff includes nine frontend source files, six backend source files, one new backend test and **zero admin screen files**; documentation and screenshots are counted separately.
+
+| Attribute | V1 implementation | V2 implementation | Completion and evidence |
+|---|---|---|---|
+| Programming stack | React 18, TypeScript, Vite, Tailwind, Hono/Node and Postgres/PGlite. | Same stack and package manifest. | **Existing in both.** [Package manifest](../package.json); no `package.json` diff. |
+| Code structure | Public site, taxpayer app and staff admin share the frontend; API, ETA logic and signer live in separate source folders. | Same structure; v2 changes selected entry screens and submission guards. | **Existing architecture, targeted v2 changes.** [Source tree](https://github.com/gendaiski/Egyptian-eInvoice-SDK---Fattura/tree/codex/fattura-egypt-v2/src) · [branch diff](https://github.com/gendaiski/Egyptian-eInvoice-SDK---Fattura/compare/claude/fatura-frontend...codex/fattura-egypt-v2). |
+| Tax calculation and ETA serialization code | Shared calculation, code tables, serialization and pre-flight checks in `src/eta/`. | Same modules and rules; v2 did not fork or rewrite them. | **Existing in both.** No `src/eta/` source diff; see [ETA mapping](ETA-SDK-MAPPING.md). |
+| Data model and migrations | Tenant, user, document, platform and audit storage on Postgres or PGlite. | Same database schema and migration files. | **Existing in both.** No `server/src/db/` diff; hosted durability still needs `DATABASE_URL`. |
+| Shared UI components | Buttons, cards, statuses, tables, invoice paper and tokenized light/dark styles. | Same component library; `Card` gains an optional section ID, and v2 adds composer/entry-screen styles. | **Changed in v2, limited to presentation.** [UI components](../src/components/ui.tsx) · [styles](../src/styles/index.css). |
+| Automated tests | V1 handoff recorded 41 passing tests across seven files and 12 smoke checks. | 42 tests across eight files, including a new production-submission guard test; typecheck and Vercel build passed locally. | **V2 checked 24 Oct 2026; v1 numbers are historical.** [V1 handoff](HANDOFF.md) · [v2 verification](V2-HANDOVER.md). |
+
+## Frontend coverage
+
+| Screen or behavior | V1 | V2 | Completion and evidence |
+|---|---|---|---|
+| Public landing | Two-column invoice-led hero. | Framed simulator invoice, clearer actions and proof strip. | **Changed in v2.** [Home source](../src/site/pages/Home.tsx) · [v2 screenshot](v2-frontend-evidence/landing-light.png). |
+| Other public pages | Product, pricing, payments, developers, guide, contact, legal and other routes exist. | These routes remain; v2 did not redesign each page. | **Existing in both.** [Site routing](../src/App.tsx); no diff in their page files. |
+| Taxpayer dashboard | Greeting, exception cards, KPIs, charts and recent-documents table. | New status-rich intro and mobile document cards; KPIs/charts remain. | **Changed in v2.** [Dashboard](../src/pages/app/Dashboard.tsx) · [mobile screenshot](v2-frontend-evidence/dashboard-mobile-documents-ar-dark.png). |
+| Invoice creation | Composer covers document, customer, items, taxes, payment plan, summary and pre-flight validation. | Same fields and business logic, with section navigation and clickable pre-flight findings. | **Changed in v2.** [Composer](../src/pages/app/Composer.tsx) · [desktop screenshot](v2-frontend-evidence/composer-desktop.png). |
+| Mobile composer | Save/Submit controls and the form existed. | Save/Submit bar remains fixed to the viewport; section navigation scrolls horizontally without body overflow. | **V2 browser checked at 390 px.** [Mobile screenshot](v2-frontend-evidence/composer-mobile.png). V1 was not re-run side by side. |
+| Invoices, received documents, receivables, reporting | Screens and interactions already existed. | No dedicated v2 changes to these screen files. | **Existing in both; individual hosted flows not reverified for this table.** [App pages](https://github.com/gendaiski/Egyptian-eInvoice-SDK---Fattura/tree/codex/fattura-egypt-v2/src/pages/app). |
+| Sign-in and taxpayer onboarding | Frontend flows existed, including a demo-only code step; API mode uses password login. | No auth/onboarding screen changes. | **Existing in both; production second factor and password reset remain incomplete.** [Auth source](../src/pages/auth/Auth.tsx) · [open tasks](HANDOFF.md). |
+| Arabic, RTL and themes | Bilingual copy, RTL and light/dark design tokens existed. | Visible theme icon added to the public mobile header; new composer layout checked in Arabic dark mode. | **Changed in v2 at the mobile header/composer.** [Site layout](../src/site/SiteLayout.tsx) · [Arabic screenshot](v2-frontend-evidence/composer-mobile-ar-dark.png). |
+| Demo truthfulness | Browser mode could appear similar to an ETA-connected workspace; home sample used production context. | Explicit browser-demo and simulator labels; no public ETA QR for a simulator sample. | **Changed in v2.** [App layout](../src/layouts/AppLayout.tsx) · [invoice paper](../src/components/InvoicePaper.tsx). |
+| Accessibility and copy review | Responsive/bilingual foundation exists; full audit not recorded. | V2 composer navigation uses buttons and responsive layouts; no complete accessibility or native-Arabic editorial audit was performed. | **PARTIAL / NOT VERIFIED.** Do not infer accessibility compliance from screenshots. |
+
+## Backend and integration coverage
+
+| Service or workflow | V1 | V2 | Completion and evidence |
+|---|---|---|---|
+| Hono API and tenant data | Authentication, tenant-scoped data, bootstrap and workflow routes. | Same API architecture and tenant model. | **Existing in both.** [Core routes](../server/src/routes/core.ts) · [API tests](../server/test/api.test.ts). |
+| Invoice lifecycle | Draft, sign, submit, poll, Valid/Invalid, cancellation/rejection handling. | Same lifecycle; adds production-specific approval checks before and after signing. | **Changed only for production safeguards.** [Document service](../server/src/services/documents.ts). Simulator workflow passed locally; real ETA did not. |
+| ETA simulator | In-process validation, statuses and received-document routing. | Same simulator; v2 labels it more clearly in the UI. | **Existing in both, locally tested.** [V1 handoff](HANDOFF.md) · [v2 tests](../server/test/api.test.ts). |
+| ETA HTTP client | OAuth2 login, token caching and retry logic implemented against mocks. | Same client; no new real-ETA transport code. | **Existing in both; real ETA pre-production NOT VERIFIED.** [ETA HTTP test](../server/test/eta-http.test.ts). |
+| Tax maths and pre-flight | Calculation, serialization and validation modules. | Same rules and code tables. | **Existing in both, unit-tested.** [ETA source](../src/eta/validate.ts). |
+| CAdES signing and USB agent | Test-certificate and USB-agent protocol present. | Same signing methods; queued jobs record target environment and production confirmation and recheck before sending. | **Changed guard, hardware NOT VERIFIED.** [Signing service](../server/src/signing/service.ts) · [guard test](../server/test/production-guard.test.ts). |
+| External ERP API and webhooks | API keys, idempotent invoice creation and signed webhook outbox. | Same API/webhook foundation; explicit confirmation added for live-production API submissions. | **Changed production request contract.** [External routes](../server/src/routes/ext.ts) · [API guide](API.md). |
+| Recurring invoices and worker | Schedule generation, ETA polling and outbox processing. | Same worker; automatic recurring runs cannot pass the new live-production confirmation requirement. | **Existing workflow with new safety boundary.** [Worker](../server/src/services/worker.ts) · [document service](../server/src/services/documents.ts). |
+| Hosted persistence | `DATABASE_URL` supports Postgres; fallback PGlite is temporary on Vercel. | Same hosting model; no durable Vercel database added by v2. | **PARTIAL / NOT VERIFIED on the hosted URLs.** [Deployment notes](V2-HANDOVER.md). |
+
+## Staff admin panel
+
+**No file under `src/pages/admin/` changed between these snapshots.** V2 preserves the v1 admin panel; the following rows describe existing features and limits, not new v2 deliveries.
+
+| Admin area | V1 | V2 | Completion and evidence |
+|---|---|---|---|
+| Overview | Tenant, revenue, ETA-traffic and attention charts/cards. | Same screen and data bindings. | **Existing in both; live production metrics not reverified.** [Overview](../src/pages/admin/Overview.tsx). |
+| Tenants | Search/filter, tenant detail, plan selection and suspend/reactivate controls. | Same screens. | **Existing in both.** [Tenants](../src/pages/admin/Tenants.tsx); support-view flow needs separate verification. |
+| Plans and pricing | Edit plan descriptions, quotas, prices and availability. | Same editor. | **Existing in both.** [Plans](../src/pages/admin/Plans.tsx). |
+| Platform billing | Invoice/status table, manual “Mark paid” control and reminder button. | Same screen. | **PARTIAL in both:** no payment processor; “Remind” currently only shows a toast. [Billing](../src/pages/admin/Billing.tsx). |
+| Leads | Website contact and sign-up leads, filters and status updates. | Same screen. | **Existing in both; contact → lead covered by API tests.** [Leads](../src/pages/admin/Leads.tsx) · [API test](../server/test/api.test.ts). |
+| ETA health | Charts, endpoint table and “Drain retry queue” control. | Same screen. | **PARTIAL in both:** the retry control waits then shows a success toast; it does not drain a backend queue. [ETA health](../src/pages/admin/EtaHealth.tsx). |
+| Reference data | Code-table viewer and Sync buttons. | Same screen. | **PARTIAL in both:** Sync uses a timer and updates UI state; no live ETA code-table fetch. [Reference data](../src/pages/admin/ReferenceData.tsx). |
+| Audit log | Search/filter of recorded actions and an Export button. | Same screen. | **PARTIAL in both:** the Export button has no handler; five-year retention is not established by the screen. [Audit log](../src/pages/admin/AuditLog.tsx). |
+| Staff and platform settings | Staff/role table, invite control, feature switches and website announcement editor. | Same screens. | **PARTIAL in both:** invite only shows an information toast; feature switches are local component state. [Team/settings](../src/pages/admin/Team.tsx). |
+
+## Completion and readiness
+
+| Acceptance area | V1 status | V2 status | Remaining work |
+|---|---|---|---|
+| Main local product workflow | Historical handoff records tests/smoke checks. | **PASS locally** on simulator with 42 tests and v2 browser checks. | Rerun against the intended persistent deployment before calling the hosted product complete. |
+| Frontend review | Core site, taxpayer app and admin screens existed. | **PASS for the changed landing, dashboard and composer screens locally.** | Other pages and admin screens were preserved; they were not redesigned or separately browser-audited in v2. |
+| Backend production controls | No additional operator-plus-request production gate. | **PASS in automated guard tests.** | Actual ETA pre-production and production flows still need authorized credentials, hardware and live verification. |
+| Full admin operations | **PARTIAL.** Screen coverage exists, with placeholder controls noted above. | **PARTIAL; unchanged from v1.** | Implement real reminder delivery, reference sync, retry action, audit export and invitations; verify permissions and persistence. |
+| Revenue collection | **PARTIAL.** Plans, invoices and status tracking exist. | **PARTIAL; unchanged.** | Integrate a payment provider or bank reconciliation; do not equate manual “Mark paid” with collection. |
+| Email and account recovery | **PARTIAL.** No delivery service or production password-reset/second-factor flow. | **PARTIAL; unchanged.** | Add delivery, invitation acceptance, account recovery and real second factor. |
+| E-receipts and hardware signing | **PARTIAL / NOT VERIFIED.** POS submission backend absent; USB agent not tested with a real Egyptian token. | **PARTIAL / NOT VERIFIED; unchanged except signing-job guard.** | Complete POS integration and authorized hardware testing. |
+| Public hosted v2 review | V1 URL returns HTTP 200, but this comparison did not run a current hosted end-to-end test. | V2 build passes; branch URL redirects to Vercel Authentication. Hosted UI, API and persistence are **NOT VERIFIED**. | Grant access to the preview and configure/verify durable `DATABASE_URL`; then run a hosted workflow. |
+
 ## Scope and interpretation
 
 - V2 is an **incremental review build** of Fattura. It should not be counted as a new payment engine, new ETA SDK, or a verified live ETA integration.
