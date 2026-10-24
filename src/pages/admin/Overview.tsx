@@ -27,7 +27,7 @@ export function AdminOverview() {
 
   return (
     <div className="animate-in">
-      <PageHeader title={L('Platform overview', 'نظرة عامة على المنصة')} description={L('Fatura across all tenants — revenue, ETA traffic and accounts that need a hand.', 'فاتورة عبر كل الشركات — الإيراد وحركة المصلحة والحسابات التي تحتاج مساعدة.')} />
+      <PageHeader title={L('Platform overview', 'نظرة عامة على المنصة')} description={L('Tenant records come from the server; revenue and ETA charts include seeded sample data. Use Beta operations for current server counts.', 'بيانات الشركات من الخادم؛ رسوم الإيراد والمصلحة تشمل بيانات عرض. راجع تشغيل النسخة التجريبية للأعداد الفعلية.')} />
       <div className="grid gap-3 grid-cols-2 xl:grid-cols-4 mb-6">
         <Stat label={L('Monthly recurring revenue', 'الإيراد الشهري المتكرر')} value={money(mrr, 'EGP', { compact: true })} hint={L('incl. installment plans', 'يشمل خطط التقسيط')} icon={<TrendingUp className="size-4" />} />
         <Stat label={L('Active tenants', 'الشركات النشطة')} value={tenants.filter((t) => t.status === 'active').length} hint={L(`${tenants.filter((t) => t.status === 'trial').length} on trial`, `${tenants.filter((t) => t.status === 'trial').length} تجريبي`)} icon={<Building2 className="size-4" />} />

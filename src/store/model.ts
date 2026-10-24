@@ -91,6 +91,7 @@ export interface Tenant {
   id: string; name: string; rin: string; owner: string; governorate: string; planId: string; model: BillingModel; cycle?: 'monthly' | 'yearly';
   status: 'active' | 'trial' | 'past_due' | 'suspended'; env: 'preprod' | 'production'; docsThisMonth: number; invalidRate: number;
   signer: 'online' | 'offline'; mrr: number; createdAt: string; installmentsPaid?: number;
+  pendingBilling?: { model: 'monthly' | 'yearly' | 'one-time' | 'installments'; requestedAt: string; requestedBy: string };
 }
 export interface PlatformInvoice {
   id: string; number: string; tenantId: string; issuedAt: string; dueAt: string; amount: number; vat: number;

@@ -271,6 +271,8 @@ export function seed(): DB {
       pn++;
     }
   }
+  // The test tenant needs one payable invoice so the Beta payment simulator is reviewable in the UI.
+  invoices.push({ id: 'pi_beta_demo', number: 'FAT-TEST-0001', tenantId: 't1', issuedAt: daysAgo(1), dueAt: day(daysAgo(-13)), amount: 500, vat: 70, model: 'one-time', status: 'open', etaStatus: 'Valid' });
   invoices.sort((a, b) => b.issuedAt.localeCompare(a.issuedAt));
   const actions = ['tenant.signin', 'document.submit', 'document.cancel', 'integration.update_credentials', 'plan.change', 'member.invite', 'signer.certificate_renewed', 'admin.impersonate', 'billing.payment_received', 'codes.request'];
   const audit: AuditEntry[] = Array.from({ length: 60 }, (_, i) => {

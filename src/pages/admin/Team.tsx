@@ -8,7 +8,6 @@ import { Avatar, Badge, Button, Card, Field, Input, PageHeader, Segmented, Switc
 export function AdminTeam() {
   const { db } = useStore();
   const { L, rel } = useI18n();
-  const toast = useToast();
   const perms: [string, string, boolean[]][] = [
     [L('View tenants & usage', 'عرض الشركات والاستخدام'), '', [true, true, true, true]],
     [L('Support session (read-only)', 'جلسة دعم (قراءة فقط)'), '', [true, true, false, false]],
@@ -20,7 +19,7 @@ export function AdminTeam() {
   return (
     <div className="animate-in">
       <PageHeader title={L('Admin team & roles', 'فريق الإدارة والأدوار')} description={L('Fatura staff. Tenant data is never editable from here — support sessions are read-only and audited.', 'موظفو فاتورة. لا يمكن تعديل بيانات الشركات من هنا — جلسات الدعم للقراءة فقط ومسجلة.')}
-        actions={<Button variant="primary" icon={<UserPlus className="size-4" />} onClick={() => toast({ tone: 'info', text: L('Staff invites require a @fatura.eg address and hardware MFA.', 'دعوات الموظفين تتطلب بريد fatura.eg ومفتاح أمان.') })}>{L('Invite staff', 'دعوة موظف')}</Button>} />
+        actions={<Button variant="primary" icon={<UserPlus className="size-4" />} disabled title={L('Staff invitations and MFA enrollment are not configured', 'الدعوات وتسجيل التحقق الثنائي غير مفعّلين')}>{L('Invites unavailable', 'الدعوات غير متاحة')}</Button>} />
       <Card pad={false} className="mb-5">
         <Table>
           <thead><tr><Th>{L('Member', 'العضو')}</Th><Th>{L('Role', 'الدور')}</Th><Th>MFA</Th><Th>{L('Last active', 'آخر نشاط')}</Th></tr></thead>
@@ -45,31 +44,14 @@ export function AdminTeam() {
 }
 
 export function PlatformSettings() {
-  const { db, set } = useStore();
   const { L } = useI18n();
-  const toast = useToast();
-  const [threshold, setThreshold] = useState(db.settings.personIdThreshold);
-  const [trial, setTrial] = useState(14);
-  const [flags, setFlags] = useState({ receipts: true, cloudSigning: true, whatsapp: false, maintenance: false });
   return (
     <div className="animate-in">
-      <PageHeader title={L('Platform settings', 'إعدادات المنصة')} description={L('Defaults that apply to every tenant.', 'افتراضيات تنطبق على كل الشركات.')} />
+      <PageHeader title={L('Platform settings', 'إعدادات المنصة')} description={L('Website announcement is active. Platform-wide feature switches require a server-backed rollout system before they can be changed here.', 'إعلان الموقع فعال. مفاتيح الخصائص تحتاج نظام نشر على الخادم قبل تغييرها هنا.')} />
       <div className="space-y-5 max-w-[760px]">
         <SiteBanner />
-        <Card title={L('ETA rules', 'قواعد المصلحة')} subtitle={L('Update when ETA publishes a change; tenants pick it up immediately.', 'حدّثها عند نشر المصلحة لتغيير.')}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={L('National ID threshold for individuals (EGP)', 'حد الرقم القومي للأفراد (جنيه)')}>{(id) => <Input id={id} type="number" value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} />}</Field>
-            <Field label={L('Free trial length (days)', 'مدة التجربة (أيام)')}>{(id) => <Input id={id} type="number" value={trial} onChange={(e) => setTrial(Number(e.target.value))} />}</Field>
-          </div>
-          <div className="flex justify-end mt-4"><Button variant="primary" onClick={() => { set((x) => { x.settings.personIdThreshold = threshold; }); toast({ tone: 'ok', text: L('Saved and pushed to all tenants.', 'تم الحفظ والنشر لكل الشركات.') }); }}>{L('Save', 'حفظ')}</Button></div>
-        </Card>
-        <Card title={L('Feature flags', 'خصائص التشغيل')}>
-          <div className="space-y-4">
-            <Switch checked={flags.receipts} onChange={(v) => setFlags({ ...flags, receipts: v })} label={L('E-receipts (POS)', 'الإيصالات الإلكترونية')} description={L('Available on Scale.', 'متاحة في باقة التوسع.')} />
-            <Switch checked={flags.cloudSigning} onChange={(v) => setFlags({ ...flags, cloudSigning: v })} label={L('Cloud signing (eSeal)', 'التوقيع السحابي')} />
-            <Switch checked={flags.whatsapp} onChange={(v) => setFlags({ ...flags, whatsapp: v })} label={L('WhatsApp invoice delivery (beta)', 'إرسال الفواتير عبر واتساب (تجريبي)')} />
-            <Switch checked={flags.maintenance} onChange={(v) => setFlags({ ...flags, maintenance: v })} label={L('Maintenance banner', 'شريط الصيانة')} description={L('Shows a banner in every workspace; submissions keep queueing.', 'يظهر شريط في كل المساحات؛ يستمر حفظ الإرسال.')} />
-          </div>
+        <Card title={L('Planned server controls', 'تحكم الخادم المخطط')} subtitle={L('These controls are not active in this Beta.', 'هذه الخصائص غير فعالة في النسخة التجريبية.')}>
+          <ul className="space-y-2 text-[13px] text-ink-muted"><li>{L('Global tax-rule rollout and trial duration', 'نشر قواعد الضرائب ومدة التجربة')}</li><li>{L('E-receipts and cloud-signing feature flags', 'مفاتيح الإيصالات والتوقيع السحابي')}</li><li>{L('WhatsApp delivery and maintenance mode', 'إرسال واتساب ووضع الصيانة')}</li></ul>
         </Card>
       </div>
     </div>

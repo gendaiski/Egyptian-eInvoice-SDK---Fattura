@@ -1,15 +1,16 @@
 import {
   Building, CheckCircle2, Code2, CreditCard, Database, Download, FileKey, GitBranch, Hash, KeyRound, Loader2, Plug, Plus, RotateCcw, Server, ShieldCheck, Usb, UserPlus, Users,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { billingOf, priceFor } from '@/billing/plans';
+import { API_BASE } from '@/env';
 import { ENDPOINTS } from '@/eta/client';
 import { ACTIVITY_CODES, GOVERNORATES } from '@/eta/codes';
 import { DOCUMENT_TYPES, mockEta } from '@/eta/mockClient';
 import { bi, useI18n } from '@/i18n';
 import { api, reportApiError } from '@/lib/api';
-import { formatNumber, uid, type Branch, type Integration, type Member, type Signing } from '@/store/model';
+import { formatNumber, uid, type Branch, type Integration, type Member, type Signing, type PlatformInvoice } from '@/store/model';
 import { useStore } from '@/store/store';
 import {
   Avatar, Badge, Button, Callout, Card, DescList, Field, Input, Modal, Money, Mono, PageHeader, Progress, Segmented, Select, Switch, Table, Td, Th, cx, useToast,
@@ -330,13 +331,41 @@ function NumberingSection() {
 }
 
 function BillingSection() {
-  const { db, set } = useStore();
+  const { db, set, reload, mode } = useStore();
   const { L, lang, money, date } = useI18n();
   const toast = useToast();
   const tenant = db.admin.tenants.find((t) => t.id === db.session.tenantId) ?? db.admin.tenants[0];
   const plan = db.admin.plans.find((p) => p.id === tenant.planId)!;
   const used = db.docs.filter((d) => d.direction === 'sent' && d.submittedAt?.startsWith(new Date().toISOString().slice(0, 7))).length;
   const [model, setModel] = useState<'monthly' | 'yearly' | 'one-time' | 'installments'>(tenant.model === 'recurring' ? tenant.cycle ?? 'monthly' : tenant.model);
+  const [requesting, setRequesting] = useState(false);
+  const [simulatorEnabled, setSimulatorEnabled] = useState(mode === 'local');
+  const [paymentInvoice, setPaymentInvoice] = useState<PlatformInvoice | null>(null);
+  const [paying, setPaying] = useState(false);
+  useEffect(() => { if (mode === 'api') api<{ providers: { id: string; enabled: boolean }[] }>('GET', '/payments/providers').then((x) => setSimulatorEnabled(!!x.providers.find((p) => p.id === 'simulator')?.enabled)).catch(() => setSimulatorEnabled(false)); }, [mode]);
+  const simulatePayment = async (outcome: 'paid' | 'failed') => {
+    if (!paymentInvoice) return;
+    setPaying(true);
+    try {
+      if (mode === 'api') {
+        const intent = await api<{ id: string }>('POST', '/payments/intents', { invoiceId: paymentInvoice.id, provider: 'simulator' });
+        await api('POST', `/payments/intents/${encodeURIComponent(intent.id)}/simulate`, { outcome });
+        await reload();
+      } else if (outcome === 'paid') set((x) => { const i = x.admin.invoices.find((row) => row.id === paymentInvoice.id); if (i) i.status = 'paid'; });
+      toast({ tone: outcome === 'paid' ? 'ok' : 'bad', text: outcome === 'paid' ? L('Test payment recorded. No money moved.', 'تم تسجيل دفعة اختبارية. لم تنتقل أموال.') : L('Test payment failed. Invoice remains open.', 'فشلت الدفعة الاختبارية. الفاتورة ما زالت مفتوحة.') });
+      setPaymentInvoice(null);
+    } catch (e) { toast({ tone: 'bad', text: (e as Error).message }); }
+    finally { setPaying(false); }
+  };
+  const requestChange = async () => {
+    setRequesting(true);
+    try {
+      if (mode === 'api') { await api('POST', '/operations/billing/change-request', { model }); await reload(); }
+      else set((x) => { const t = x.admin.tenants.find((y) => y.id === tenant.id); if (t) t.pendingBilling = { model, requestedAt: new Date().toISOString(), requestedBy: db.session.user.email }; });
+      toast({ tone: 'ok', text: L('Billing change requested. Staff review is required before it takes effect.', 'تم طلب التغيير. يجب أن يراجعه الموظفون قبل تفعيله.') });
+    } catch (e) { toast({ tone: 'bad', text: (e as Error).message }); }
+    finally { setRequesting(false); }
+  };
   const invoices = db.admin.invoices.filter((i) => i.tenantId === tenant.id);
   const price = { monthly: [plan.monthly, L('/ month', '/ شهر')], yearly: [plan.yearly, L('/ year', '/ سنة')], 'one-time': [plan.oneTime, L('once', 'مرة واحدة')], installments: [plan.installments.amount, L(`× ${plan.installments.count} installments`, `× ${plan.installments.count} أقساط`)] }[model] as [number, string];
   return (
@@ -355,6 +384,7 @@ function BillingSection() {
         </div>
       </Card>
       <Card title={L('Change how you pay', 'غيّر طريقة الدفع')} subtitle={L('Same features — pick the payment model that suits your cash flow.', 'نفس المزايا — اختر ما يناسب تدفقك النقدي.')}>
+        {tenant.pendingBilling && <Callout tone="info" title={L('Change awaiting staff review', 'التغيير بانتظار مراجعة الموظفين')}>{L(`Requested: ${tenant.pendingBilling.model}. Your current billing remains active.`, `المطلوب: ${tenant.pendingBilling.model}. طريقة الدفع الحالية ما زالت فعالة.`)}</Callout>}
         <div role="radiogroup" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {([
             ['monthly', L('Monthly', 'شهري'), money(plan.monthly)],
@@ -370,34 +400,56 @@ function BillingSection() {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
           <span className="text-ink-muted text-[13px]">{model === 'one-time' ? L('Includes 12 months of updates and ETA schema changes; renew updates yearly at 20%.', 'يشمل ١٢ شهراً من التحديثات؛ تجديد التحديثات سنوياً بنسبة ٢٠٪.') : model === 'installments' ? L('Interest-free. Each installment is invoiced to you as a valid ETA invoice.', 'بدون فوائد. كل قسط يصدر كفاتورة إلكترونية صالحة.') : L('Cancel or switch any time.', 'يمكنك الإلغاء أو التغيير في أي وقت.')}</span>
-          <Button variant="primary" onClick={() => { set((x) => { const t = x.admin.tenants.find((y) => y.id === tenant.id)!; t.model = model === 'monthly' || model === 'yearly' ? 'recurring' : model; t.cycle = model === 'monthly' || model === 'yearly' ? model : undefined; }); toast({ tone: 'ok', text: L(`Switched to ${model} billing from your next cycle.`, 'تم تغيير طريقة الدفع اعتباراً من الدورة القادمة.') }); }}>{L('Confirm', 'تأكيد')} · {money(price[0])} {price[1]}</Button>
+          <Button variant="primary" disabled={requesting || !!tenant.pendingBilling} onClick={() => void requestChange()}>{L('Request change', 'طلب التغيير')} · {money(price[0])} {price[1]}</Button>
         </div>
       </Card>
       <Card title={L('Invoices from Fatura', 'فواتير فاتورة')} pad={false}>
         <Table>
-          <thead><tr><Th>{L('Number', 'الرقم')}</Th><Th>{L('Date', 'التاريخ')}</Th><Th>{L('Status', 'الحالة')}</Th><Th align="end">{L('Amount', 'المبلغ')}</Th></tr></thead>
-          <tbody>{invoices.map((i) => <tr key={i.id}><Td className="font-medium">{i.number}</Td><Td className="text-ink-muted">{date(i.issuedAt)}</Td><Td><Badge tone={i.status === 'paid' ? 'ok' : i.status === 'overdue' ? 'bad' : 'warn'}>{i.status}</Badge></Td><Td align="end"><Money value={i.amount + i.vat} /></Td></tr>)}</tbody>
+          <thead><tr><Th>{L('Number', 'الرقم')}</Th><Th>{L('Date', 'التاريخ')}</Th><Th>{L('Status', 'الحالة')}</Th><Th align="end">{L('Amount', 'المبلغ')}</Th><Th /></tr></thead>
+          <tbody>{invoices.map((i) => <tr key={i.id}><Td className="font-medium">{i.number}</Td><Td className="text-ink-muted">{date(i.issuedAt)}</Td><Td><Badge tone={i.status === 'paid' ? 'ok' : i.status === 'overdue' ? 'bad' : 'warn'}>{i.status}</Badge></Td><Td align="end"><Money value={i.amount + i.vat} /></Td><Td>{simulatorEnabled && (i.status === 'open' || i.status === 'overdue') && <Button size="sm" onClick={() => setPaymentInvoice(i)}>{L('Test payment', 'تجربة الدفع')}</Button>}</Td></tr>)}</tbody>
         </Table>
       </Card>
+      <Card title={L('Payment methods', 'طرق الدفع')} subtitle={L('Provider-neutral payment layer. Paymob and Fawry will become available after sandbox integration is verified.', 'بنية دفع تدعم عدة مزودين. سيتاح بايموب وفوري بعد التحقق من ربط بيئة الاختبار.')}>
+        <div className="flex flex-wrap gap-2"><Badge tone={simulatorEnabled ? 'ok' : 'neutral'}>{L('Test simulator', 'محاكي الاختبار')} · {simulatorEnabled ? L('ready', 'جاهز') : L('off', 'معطل')}</Badge><Badge tone="neutral">Paymob · {L('pending', 'معلق')}</Badge><Badge tone="neutral">Fawry · {L('pending', 'معلق')}</Badge><Badge tone="neutral">{L('Bank transfer · manual evidence', 'تحويل بنكي · دليل يدوي')}</Badge></div>
+      </Card>
+      <Modal open={!!paymentInvoice} onClose={() => setPaymentInvoice(null)} title={L(`Test payment · ${paymentInvoice?.number ?? ''}`, `دفع اختباري · ${paymentInvoice?.number ?? ''}`)}
+        footer={<><Button disabled={paying} onClick={() => setPaymentInvoice(null)}>{L('Cancel', 'إلغاء')}</Button><Button disabled={paying} onClick={() => void simulatePayment('failed')}>{L('Simulate failure', 'محاكاة فشل')}</Button><Button variant="primary" disabled={paying} onClick={() => void simulatePayment('paid')}>{L('Simulate paid', 'محاكاة النجاح')}</Button></>}>
+        <p className="text-ink-muted">{L('This tests Fatura’s billing state and audit trail. It never opens a real provider checkout or moves money.', 'يختبر هذا حالة الفوترة وسجل التدقيق فقط. لا يفتح صفحة دفع حقيقية ولا ينقل أموالاً.')}</p>
+      </Modal>
     </>
   );
 }
 
 function DataSection() {
-  const { reset, mode } = useStore();
+  const { reset, mode, db } = useStore();
   const { L } = useI18n();
   const toast = useToast();
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
+  const exportData = async () => {
+    setBusy(true);
+    try {
+      let blob: Blob;
+      if (mode === 'api') {
+        const res = await fetch(`${API_BASE}/api/v1/operations/tenant/export`, { credentials: 'include' });
+        if (!res.ok) throw new Error(`Export failed (${res.status}).`);
+        blob = await res.blob();
+      } else blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), format: 'fatura-demo-json-v1', company: db.company, documents: db.docs, customers: db.customers, items: db.items, recurring: db.recurring, submissions: db.submissions, receipts: db.receipts }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `fatura-data-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { toast({ tone: 'bad', text: (e as Error).message }); }
+    finally { setBusy(false); }
+  };
   return (
     <>
-      <Card title={L('Export everything', 'تصدير كل شيء')} subtitle={L('A full archive of documents (JSON as submitted, PDFs, validation results) for your auditors. ETA requires you to keep records for 5 years.', 'أرشيف كامل للمستندات للمراجعين. تتطلب المصلحة الاحتفاظ بالسجلات ٥ سنوات.')}>
-        <Button icon={busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />} onClick={async () => { setBusy(true); await new Promise((r) => setTimeout(r, 900)); setBusy(false); toast({ tone: 'ok', text: L('Archive is being prepared — we will email you a link.', 'جارٍ تجهيز الأرشيف — سنرسل لك رابطاً.') }); }}>{L('Request archive', 'طلب الأرشيف')}</Button>
+      <Card title={L('Download data archive', 'تنزيل أرشيف البيانات')} subtitle={L('Download a JSON snapshot of your company, documents, validation results, customers and schedules. PDF files are not included.', 'نزّل نسخة JSON للشركة والمستندات ونتائج التحقق والعملاء والجداول. ملفات PDF غير مضمنة.')}>
+        <Button disabled={busy} icon={busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />} onClick={() => void exportData()}>{L('Download JSON', 'تنزيل JSON')}</Button>
       </Card>
       {mode === 'local' && <Card title={L('Demo data', 'بيانات العرض')} subtitle={L('This workspace runs on a simulated ETA backend. Reset to restore the sample company.', 'تعمل مساحة العمل على محاكاة لخادم المصلحة. أعد الضبط لاستعادة بيانات العرض.')}>
         <Button variant="secondary" icon={<RotateCcw className="size-4" />} onClick={() => setConfirm(true)}>{L('Reset demo data', 'إعادة ضبط البيانات')}</Button>
       </Card>}
-      <Card title={L('Server', 'الخادم')}><p className="text-ink-muted text-[13px] flex items-center gap-2"><Server className="size-4" />{L('Data residency: Egypt (Cairo region). Encrypted at rest, TLS 1.3 in transit.', 'إقامة البيانات: مصر. مشفرة أثناء التخزين والنقل.')}</p></Card>
+      <Card title={L('Server', 'الخادم')}><p className="text-ink-muted text-[13px] flex items-center gap-2"><Server className="size-4" />{L('Storage region and encryption depend on the selected host and database; verify them before production use.', 'منطقة التخزين والتشفير يعتمدان على الاستضافة وقاعدة البيانات. تحقق منهما قبل الاستخدام الفعلي.')}</p></Card>
       <Modal open={confirm} onClose={() => setConfirm(false)} size="sm" title={L('Reset demo data?', 'إعادة ضبط البيانات؟')}
         footer={<><Button onClick={() => setConfirm(false)}>{L('Cancel', 'إلغاء')}</Button><Button variant="danger" onClick={() => { reset(); setConfirm(false); toast({ tone: 'ok', text: L('Demo data restored.', 'تمت استعادة البيانات.') }); }}>{L('Reset', 'إعادة الضبط')}</Button></>}>
         <p className="text-ink-muted">{L('All changes you made in this browser are replaced with the sample data.', 'ستُستبدل كل تغييراتك ببيانات العرض.')}</p>

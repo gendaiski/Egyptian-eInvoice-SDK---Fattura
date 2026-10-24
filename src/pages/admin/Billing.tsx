@@ -3,13 +3,37 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '@/i18n';
 import { useStore } from '@/store/store';
-import { Badge, Button, Card, EmptyState, Money, PageHeader, Stat, Table, Tabs, Td, Th, useToast, type Tone } from '@/components/ui';
+import { api } from '@/lib/api';
+import { Badge, Button, Card, EmptyState, Field, Input, Modal, Money, PageHeader, Select, Stat, Table, Tabs, Td, Th, useToast, type Tone } from '@/components/ui';
+import type { PlatformInvoice } from '@/store/model';
 
 export function Billing() {
-  const { db, set } = useStore();
+  const { db, set, reload, mode } = useStore();
   const { L, date, money } = useI18n();
   const toast = useToast();
   const [tab, setTab] = useState<'all' | 'open' | 'overdue' | 'installments'>('all');
+  const [selected, setSelected] = useState<PlatformInvoice | null>(null);
+  const [reference, setReference] = useState('');
+  const [method, setMethod] = useState<'bank-transfer' | 'cash' | 'external-provider'>('bank-transfer');
+  const [saving, setSaving] = useState(false);
+  const approveChange = async (tenantId: string) => {
+    try {
+      if (mode === 'api') { await api('POST', `/operations/billing/change-request/${encodeURIComponent(tenantId)}/approve`); await reload(); }
+      else set((x) => { const t = x.admin.tenants.find((y) => y.id === tenantId); if (t?.pendingBilling) { const model = t.pendingBilling.model; t.model = model === 'monthly' || model === 'yearly' ? 'recurring' : model; t.cycle = model === 'monthly' || model === 'yearly' ? model : undefined; delete t.pendingBilling; } });
+      toast({ tone: 'ok', text: L('Billing change approved and applied.', 'تمت الموافقة على تغيير الدفع وتطبيقه.') });
+    } catch (e) { toast({ tone: 'bad', text: (e as Error).message }); }
+  };
+  const recordPayment = async () => {
+    if (!selected || reference.trim().length < 3) return;
+    setSaving(true);
+    try {
+      if (mode === 'api') { await api('POST', `/operations/billing/${encodeURIComponent(selected.id)}/record-payment`, { reference: reference.trim(), method }); await reload(); }
+      else set((x) => { const invoice = x.admin.invoices.find((i) => i.id === selected.id); if (invoice) invoice.status = 'paid'; });
+      toast({ tone: 'ok', text: L('Payment evidence recorded. This does not charge a card.', 'تم تسجيل دليل الدفع. لم يتم خصم مبلغ من بطاقة.') });
+      setSelected(null); setReference('');
+    } catch (e) { toast({ tone: 'bad', text: (e as Error).message }); }
+    finally { setSaving(false); }
+  };
   const inv = db.admin.invoices;
   const rows = inv.filter((i) => tab === 'all' || (tab === 'installments' ? i.model === 'installments' : i.status === tab));
   const tenant = (id: string) => db.admin.tenants.find((t) => t.id === id)!;
@@ -18,7 +42,10 @@ export function Billing() {
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
   return (
     <div className="animate-in">
-      <PageHeader title={L('Billing & collections', 'الفوترة والتحصيل')} description={L('Invoices Fatura issues to tenants — each one a valid ETA invoice — across monthly, yearly, installment and one-time sales.', 'الفواتير التي تصدرها فاتورة للشركات — كل منها فاتورة إلكترونية صالحة.')} />
+      <PageHeader title={L('Billing & collections', 'الفوترة والتحصيل')} description={L('Platform invoice records and payment evidence. Seeded demo invoices are examples; verify ETA status on real invoices before collection.', 'سجلات فواتير المنصة ودليل التحصيل. فواتير العرض أمثلة؛ تحقق من حالة المصلحة قبل التحصيل الفعلي.')} />
+      {db.admin.tenants.some((t) => t.pendingBilling) && <Card className="mb-5" title={L('Billing changes awaiting review', 'تغييرات الدفع بانتظار المراجعة')} pad={false}>
+        <Table><thead><tr><Th>{L('Tenant', 'الشركة')}</Th><Th>{L('Requested model', 'الطريقة المطلوبة')}</Th><Th>{L('Requested', 'وقت الطلب')}</Th><Th /></tr></thead><tbody>{db.admin.tenants.filter((t) => t.pendingBilling).map((t) => <tr key={t.id}><Td>{t.name}</Td><Td>{t.pendingBilling?.model}</Td><Td>{date(t.pendingBilling?.requestedAt)}</Td><Td align="end"><Button size="sm" onClick={() => void approveChange(t.id)}>{L('Approve and apply', 'موافقة وتطبيق')}</Button></Td></tr>)}</tbody></Table>
+      </Card>}
       <div className="grid gap-3 grid-cols-2 xl:grid-cols-4 mb-5">
         <Stat label={L('Collected · 30 days', 'المحصل · ٣٠ يوماً')} value={money(sum((i) => i.status === 'paid' && i.issuedAt >= since), 'EGP', { compact: true })} />
         <Stat label={L('Open', 'مفتوحة')} value={money(sum((i) => i.status === 'open'), 'EGP', { compact: true })} />
@@ -46,8 +73,8 @@ export function Billing() {
                 <Td align="end"><Money value={i.amount + i.vat} /></Td>
                 <Td align="end">{(i.status === 'overdue' || i.status === 'open') && (
                   <div className="flex justify-end gap-1">
-                    <Button size="sm" variant="ghost" icon={<BellRing className="size-3.5" />} onClick={() => toast({ tone: 'ok', text: L(`Reminder sent to ${tenant(i.tenantId).owner}.`, `تم إرسال تذكير إلى ${tenant(i.tenantId).owner}.`) })}>{L('Remind', 'تذكير')}</Button>
-                    <Button size="sm" icon={<CheckCircle2 className="size-3.5" />} onClick={() => { set((x) => { x.admin.invoices.find((y) => y.id === i.id)!.status = 'paid'; const t = x.admin.tenants.find((y) => y.id === i.tenantId)!; if (t.status === 'past_due') t.status = 'active'; }); toast({ tone: 'ok', text: L('Marked as paid.', 'تم التعليم كمدفوعة.') }); }}>{L('Mark paid', 'مدفوعة')}</Button>
+                    <Button size="sm" variant="ghost" icon={<BellRing className="size-3.5" />} disabled title={L('Email delivery is not configured', 'إرسال البريد غير مفعّل')}>{L('Reminder unavailable', 'التذكير غير متاح')}</Button>
+                    <Button size="sm" icon={<CheckCircle2 className="size-3.5" />} onClick={() => setSelected(i)}>{L('Record payment', 'تسجيل دفع')}</Button>
                   </div>
                 )}</Td>
               </tr>
@@ -55,6 +82,12 @@ export function Billing() {
           </Table>
         )}
       </Card>
+      <Modal open={!!selected} onClose={() => setSelected(null)} title={L(`Record payment for ${selected?.number ?? ''}`, `تسجيل دفع للفاتورة ${selected?.number ?? ''}`)}
+        footer={<><Button onClick={() => setSelected(null)}>{L('Cancel', 'إلغاء')}</Button><Button variant="primary" disabled={saving || reference.trim().length < 3} onClick={() => void recordPayment()}>{L('Record evidence', 'تسجيل الدليل')}</Button></>}>
+        <p className="text-[13px] text-ink-muted mb-4">{L('Use this after independently confirming payment. It records evidence; it does not collect money.', 'استخدم هذا بعد التحقق من الدفع. يسجل الدليل ولا يحصل أموالاً.')}</p>
+        <div className="space-y-3"><Field label={L('Payment method', 'طريقة الدفع')}>{(id) => <Select id={id} value={method} onChange={(e) => setMethod(e.target.value as typeof method)}><option value="bank-transfer">{L('Bank transfer', 'تحويل بنكي')}</option><option value="cash">{L('Cash', 'نقدي')}</option><option value="external-provider">{L('External provider', 'مزود خارجي')}</option></Select>}</Field>
+          <Field label={L('Bank or provider reference', 'مرجع البنك أو المزود')}>{(id) => <Input id={id} value={reference} onChange={(e) => setReference(e.target.value)} maxLength={120} placeholder={L('Transaction reference', 'مرجع المعاملة')} />}</Field></div>
+      </Modal>
       <Card className="mt-5" title={L('Dunning policy', 'سياسة التحصيل')}>
         <ol className="grid sm:grid-cols-4 gap-3 text-[13px]">
           {[[L('Due date', 'الاستحقاق'), L('Email + WhatsApp reminder', 'تذكير بالبريد وواتساب')], [L('+3 days', '+٣ أيام'), L('Second reminder, in-app banner', 'تذكير ثانٍ وتنبيه داخلي')], [L('+10 days', '+١٠ أيام'), L('Status → past due; account manager call', 'الحالة ← متأخر؛ اتصال')], [L('+30 days', '+٣٠ يوماً'), L('Submission paused; read & export stay open', 'إيقاف الإرسال؛ القراءة والتصدير متاحة')]].map(([k, v], n) => (

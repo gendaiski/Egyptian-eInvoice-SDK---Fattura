@@ -39,6 +39,7 @@ const Receipts = lazy(() => import('./pages/app/Receipts').then((m) => ({ defaul
 const Reports = lazy(() => import('./pages/app/Reports').then((m) => ({ default: m.Reports })));
 const Settings = lazy(() => import('./pages/app/Settings').then((m) => ({ default: m.Settings })));
 const AdminOverview = lazy(() => import('./pages/admin/Overview').then((m) => ({ default: m.AdminOverview })));
+const Operations = lazy(() => import('./pages/admin/Operations').then((m) => ({ default: m.Operations })));
 const Tenants = lazy(() => import('./pages/admin/Tenants').then((m) => ({ default: m.Tenants })));
 const TenantDetail = lazy(() => import('./pages/admin/Tenants').then((m) => ({ default: m.TenantDetail })));
 const Plans = lazy(() => import('./pages/admin/Plans').then((m) => ({ default: m.Plans })));
@@ -95,6 +96,7 @@ export function App() {
       </Route>
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminOverview />} />
+        <Route path="operations" element={<Operations />} />
         <Route path="tenants" element={<Tenants />} />
         <Route path="tenants/:id" element={<TenantDetail />} />
         <Route path="leads" element={<Leads />} />

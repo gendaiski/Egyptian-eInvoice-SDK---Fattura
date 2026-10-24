@@ -10,6 +10,8 @@ import { HttpError } from './http';
 import { actions, signer } from './routes/actions';
 import { core } from './routes/core';
 import { ext } from './routes/ext';
+import { operations } from './routes/operations';
+import { payments } from './routes/payments';
 import { tick } from './services/worker';
 
 let ready: Promise<void> | null = null;
@@ -39,6 +41,7 @@ export function createApp() {
   app.post('/cron/tick', async (c) => {
     const secret = env().CRON_SECRET;
     const given = c.req.header('authorization')?.replace(/^Bearer /, '') ?? c.req.query('secret');
+    if (!secret && env().NODE_ENV === 'production') throw new HttpError(503, 'cron_not_configured', 'CRON_SECRET must be configured before scheduled work can run.');
     if (secret && given !== secret) throw new HttpError(401, 'unauthorized', 'Bad cron secret.');
     return c.json(await tick(await getDb()));
   });
@@ -52,6 +55,8 @@ export function createApp() {
   v1.use('*', attachUser);
   v1.route('/', core);
   v1.route('/actions', actions);
+  v1.route('/operations', operations);
+  v1.route('/payments', payments);
   app.route('/v1', v1);
   app.notFound((c) => c.json({ error: { code: 'not_found', message: `No route for ${c.req.method} ${new URL(c.req.url).pathname}` } }, 404));
   return app;

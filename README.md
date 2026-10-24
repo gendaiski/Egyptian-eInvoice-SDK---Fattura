@@ -10,6 +10,13 @@ This repository contains the **whole product**:
 
 Compare the original branch with the v2 review build in the [Fattura v1–v2 comparison table](docs/V1-V2-COMPARISON.md).
 
+> **Fattura Beta branch:** `codex/fattura-beta` adds a server-backed operations screen,
+> audited billing controls, tenant data export and an isolated payment test simulator.
+> On Windows or macOS/Linux with Node 20+, run `npm ci` then `npm run beta:local` and open
+> `http://127.0.0.1:8787/` on that same computer. Read the [Beta plan and verified scope](docs/BETA-PLAN.md).
+> Paymob, Fawry and real ETA remain separate external acceptance gates; the local simulator
+> never charges money or sends a production tax document.
+
 - **Front end** — the public website (15 pages), the taxpayer workspace, the Fatura platform admin panel,
   sign-in and onboarding, one app sharing one design system.
 - **Back end** — a Node API (Hono) on Postgres: accounts and tenants, the sign → submit → poll document

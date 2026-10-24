@@ -15,6 +15,25 @@ All bodies are JSON (UTF-8, Arabic unescaped). Errors look like:
 { "error": { "code": "validation_failed", "message": "Human-readable reason", "details": [ … ] } }
 ```
 
+## Beta browser-session operations
+
+These endpoints require the HTTP-only web session cookie. They are not part of the ERP bearer-key API.
+
+| Method | Path | Role and purpose |
+|---|---|---|
+| `GET` | `/api/v1/operations/status` | Staff: actual database and queue counts, worker time, release gates; no secrets. |
+| `POST` | `/api/v1/operations/eta/retry-simulator` | Super admin/Support: `{ "tenantId": "…" }`; polls only a simulator tenant. Live ETA is rejected. |
+| `GET` | `/api/v1/operations/audit/export` | Super admin/Support/Finance: downloadable JSON of up to 10,000 latest audit rows. Export action is audited. |
+| `POST` | `/api/v1/operations/billing/{invoiceId}/record-payment` | Super admin/Finance: `{ "method": "bank-transfer" | "cash" | "external-provider", "reference": "…" }`; records independently confirmed evidence, not a charge. |
+| `POST` | `/api/v1/operations/billing/change-request` | Tenant Owner: `{ "model": "monthly" | "yearly" | "one-time" | "installments" }`; persists a pending request without changing current billing. |
+| `POST` | `/api/v1/operations/billing/change-request/{tenantId}/approve` | Super admin/Finance: applies the pending request and audits it. |
+| `GET` | `/api/v1/operations/tenant/export` | Tenant Owner/Admin: downloads own JSON documents and business records, without ETA or signing secrets. |
+| `GET` | `/api/v1/payments/providers` | Tenant user: provider availability. Paymob and Fawry are listed but disabled. |
+| `POST` | `/api/v1/payments/intents` | Tenant Owner/Admin: `{ "invoiceId": "…", "provider": "simulator" }`; requires `PAYMENT_SIMULATOR_ENABLED=true`. |
+| `POST` | `/api/v1/payments/intents/{id}/simulate` | Tenant Owner/Admin: `{ "outcome": "paid" | "failed" }`; test-only, never moves money. |
+
+The test simulator has no card entry or provider checkout. Manual settlement and simulated payment are distinguished in the invoice's payment evidence and audit log. Live Paymob/Fawry contracts, callbacks and reconciliation are release gates; see [Beta plan](BETA-PLAN.md).
+
 ## Documents
 
 ### `POST /api/v1/ext/documents` — create (and optionally submit)

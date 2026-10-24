@@ -140,4 +140,20 @@ CREATE TABLE eta_tokens (
   expires_at TIMESTAMPTZ NOT NULL
 );
 `,
+  `
+CREATE TABLE payment_intents (
+  id TEXT PRIMARY KEY,
+  tenant_id TEXT NOT NULL REFERENCES tenants(id),
+  invoice_id TEXT NOT NULL UNIQUE,
+  provider TEXT NOT NULL,
+  status TEXT NOT NULL,
+  amount_piasters BIGINT NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'EGP',
+  attempts INT NOT NULL DEFAULT 0,
+  provider_reference TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX payment_intents_tenant ON payment_intents (tenant_id, created_at DESC);
+`,
 ];
