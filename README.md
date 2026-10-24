@@ -2,6 +2,8 @@
 
 A separate Bahrain accounting and VAT workpaper application. It runs a FastAPI backend, a responsive browser interface, and a persistent SQLite database. It does **not** change Fattura Egypt.
 
+**GitHub review location:** [`codex/fattura-bahrain-beta`](https://github.com/gendaiski/Egyptian-eInvoice-SDK---Fattura/tree/codex/fattura-bahrain-beta). GitHub denied this connection permission to create a new repository, so this is a standalone branch with its own files and history inside the existing Fattura repository. The Egypt branches were not changed. This is not the previously mentioned Bahrain source repository.
+
 ## Run locally
 
 On Windows PowerShell, from this repository:
