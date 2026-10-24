@@ -1,4 +1,4 @@
-import { ArrowRight, Boxes, ChevronDown, FileInput, FileText, Layers, Menu, Receipt, X } from 'lucide-react';
+import { ArrowRight, Boxes, ChevronDown, FileInput, FileText, Layers, Menu, Moon, Receipt, Sun, X } from 'lucide-react';
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { bi, useI18n } from '@/i18n';
@@ -53,7 +53,7 @@ function Dropdown({ label, children, width = 'w-[520px]' }: { label: string; chi
 
 export function SiteLayout() {
   const { db } = useStore();
-  const { L, lang } = useI18n();
+  const { L, lang, theme, setTheme } = useI18n();
   const nav = useNav();
   const loc = useLocation();
   const [menu, setMenu] = useState(false);
@@ -105,6 +105,9 @@ export function SiteLayout() {
           </nav>
           <div className="flex-1" />
           <div className="hidden sm:flex"><Prefs /></div>
+          <IconButton label={theme === 'dark' ? L('Light mode', 'الوضع الفاتح') : L('Dark mode', 'الوضع الداكن')} className="sm:hidden" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+            {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+          </IconButton>
           <Link to="/signin" className="hidden md:inline-flex h-9 items-center px-3 text-[14px] font-medium text-ink-muted hover:text-ink">{L('Sign in', 'تسجيل الدخول')}</Link>
           <LinkButton to="/signup" variant="primary" size="sm" className="h-9 px-4">{L('Start free', 'ابدأ مجاناً')}</LinkButton>
           <IconButton label={L('Open menu', 'فتح القائمة')} className="lg:hidden -me-2" onClick={() => setMenu(true)}><Menu className="size-5" /></IconButton>

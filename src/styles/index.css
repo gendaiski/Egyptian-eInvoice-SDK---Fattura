@@ -167,6 +167,162 @@
   background-size: 800px 100%; animation: shimmer 1.4s linear infinite; border-radius: 6px;
 }
 
+/* Fatura v2 entry screens: product document first, then the day's work. */
+.fatura-v2-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 64px 0 76px;
+  border-bottom: 1px solid rgb(var(--line));
+  background: radial-gradient(circle at 78% 12%, rgb(var(--accent-soft) / .9), transparent 38%),
+              linear-gradient(125deg, rgb(var(--canvas)) 45%, rgb(var(--surface)));
+}
+.fatura-v2-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgb(var(--line) / .28) 1px, transparent 1px),
+                    linear-gradient(90deg, rgb(var(--line) / .28) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to right, transparent 35%, black);
+}
+.fatura-v2-hero-grid {
+  position: relative;
+  display: grid;
+  align-items: start;
+  gap: clamp(40px, 5vw, 80px);
+  grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr);
+}
+.fatura-v2-hero-copy { position: relative; z-index: 1; padding-top: clamp(20px, 6vw, 88px); }
+.fatura-v2-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  color: rgb(var(--accent));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.fatura-v2-hero-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 42px;
+  padding-top: 22px;
+  border-top: 1px solid rgb(var(--line-strong) / .75);
+  color: rgb(var(--ink-muted));
+  font-size: 12px;
+  font-weight: 600;
+}
+.fatura-v2-hero-proof span { display: inline-flex; align-items: center; gap: 7px; }
+.fatura-v2-document-stage {
+  position: relative;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgb(var(--line-strong));
+  border-radius: var(--radius-sheet);
+  background: rgb(var(--surface));
+  box-shadow: 0 24px 65px -38px rgb(var(--shadow) / .32), 0 3px 15px rgb(var(--shadow) / .07);
+}
+.fatura-v2-stage-topline, .fatura-v2-stage-bottomline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgb(var(--ink-muted));
+  font-size: 12px;
+  font-weight: 600;
+}
+.fatura-v2-stage-topline { padding: 2px 4px 15px; }
+.fatura-v2-stage-bottomline { justify-content: flex-start; padding: 15px 4px 2px; }
+.fatura-v2-stage-demo {
+  padding: 5px 9px;
+  border: 1px solid rgb(var(--line));
+  border-radius: 999px;
+  color: rgb(var(--accent));
+  background: rgb(var(--accent-soft));
+  white-space: nowrap;
+}
+.fatura-v2-invoice-frame {
+  overflow: hidden;
+  padding: 14px;
+  border: 1px solid rgb(var(--line));
+  border-radius: var(--radius-card);
+  background: rgb(var(--sunken));
+}
+.fatura-v2-stage-seal {
+  position: absolute;
+  bottom: -28px;
+  inset-inline-start: -28px;
+  transform: rotate(-12deg);
+  filter: drop-shadow(0 8px 12px rgb(var(--shadow) / .18));
+  pointer-events: none;
+}
+.fatura-v2-workspace-intro {
+  position: relative;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+  overflow: hidden;
+  padding: 28px 32px;
+  border-radius: var(--radius-sheet);
+  background: linear-gradient(115deg, rgb(var(--accent-strong)), rgb(var(--accent)));
+  box-shadow: 0 16px 36px -26px rgb(var(--shadow) / .42);
+}
+.fatura-v2-workspace-intro::after {
+  content: '';
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  inset-inline-end: -140px;
+  top: -240px;
+  border: 1px solid rgb(var(--accent-on) / .18);
+  border-radius: 50%;
+  box-shadow: 0 0 0 45px rgb(var(--accent-on) / .045), 0 0 0 90px rgb(var(--accent-on) / .045);
+  pointer-events: none;
+}
+.fatura-v2-workspace-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 0;
+  margin-top: 24px;
+}
+.fatura-v2-workspace-facts div {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding-inline: 18px;
+  border-inline-end: 1px solid rgb(var(--accent-on) / .25);
+}
+.fatura-v2-workspace-facts div:first-child { padding-inline-start: 0; }
+.fatura-v2-workspace-facts div:last-child { border: 0; }
+.fatura-v2-workspace-facts dt { color: rgb(var(--accent-on) / .75); font-size: 12px; }
+.fatura-v2-workspace-facts dd { color: rgb(var(--accent-on)); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fatura-v2-workspace-primary, .fatura-v2-workspace-secondary { border-radius: var(--radius-control); }
+.fatura-v2-workspace-primary { background: rgb(var(--accent-on)) !important; color: rgb(var(--accent-strong)) !important; border-color: transparent !important; }
+.fatura-v2-workspace-primary:hover { background: rgb(var(--surface)) !important; }
+.fatura-v2-workspace-secondary { background: transparent !important; color: rgb(var(--accent-on)) !important; border-color: rgb(var(--accent-on) / .5) !important; }
+.fatura-v2-workspace-secondary:hover { background: rgb(var(--accent-on) / .12) !important; }
+@media (max-width: 960px) {
+  .fatura-v2-hero-grid { grid-template-columns: 1fr; }
+  .fatura-v2-hero-copy { max-width: 680px; padding-top: 0; }
+  .fatura-v2-workspace-intro { align-items: start; flex-direction: column; }
+}
+@media (max-width: 640px) {
+  .fatura-v2-hero { padding: 40px 0 50px; }
+  .fatura-v2-hero-kicker { margin-bottom: 18px; }
+  .fatura-v2-document-stage { padding: 10px; }
+  .fatura-v2-invoice-frame { padding: 6px; }
+  .fatura-v2-stage-seal { bottom: -16px; inset-inline-start: -8px; transform: rotate(-12deg) scale(.8); transform-origin: bottom left; }
+  .fatura-v2-workspace-intro { padding: 24px 20px; }
+  .fatura-v2-workspace-facts { gap: 14px 0; }
+  .fatura-v2-workspace-facts div { width: 50%; padding-inline: 10px; }
+  .fatura-v2-workspace-facts div:nth-child(2) { border: 0; }
+  .fatura-v2-workspace-facts div:nth-child(3) { padding-inline-start: 0; }
+}
+
 /* Print: only the invoice paper. */
 @media print {
   @page { size: A4; margin: 12mm; }

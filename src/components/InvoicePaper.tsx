@@ -16,7 +16,8 @@ export function InvoicePaper({ doc, company, env }: { doc: Doc; company: Company
   const issuer = sent ? { name: bi(lang, { en: company.name, ar: company.nameAr }), id: company.rin, addr: branch.address } : { name: doc.counterparty.name ?? '', id: doc.counterparty.id ?? '', addr: doc.counterparty.address };
   const receiver = sent ? { name: doc.counterparty.name ?? L('Walk-in customer', 'عميل نقدي'), id: doc.counterparty.id, addr: doc.counterparty.address } : { name: company.name, id: company.rin, addr: branch.address };
   const fmtAddr = (a?: typeof branch.address) => a ? [a.buildingNumber, a.street, a.regionCity, a.governate, a.country].filter(Boolean).join(', ') : '—';
-  const url = doc.uuid && doc.longId ? publicDocumentUrl(doc.uuid, doc.longId, env) : '';
+  // Simulator UUIDs are local examples and cannot be verified on the ETA portal.
+  const url = env !== 'simulator' && doc.uuid && doc.longId ? publicDocumentUrl(doc.uuid, doc.longId, env) : '';
   const valid = doc.status === 'Valid';
 
   return (
@@ -43,6 +44,10 @@ export function InvoicePaper({ doc, company, env }: { doc: Doc; company: Company
           </dl>
         </div>
       </header>
+
+      {env === 'simulator' && <div className="mt-4 rounded-md bg-accent-soft px-3 py-2 text-[11.5px] font-medium text-accent">
+        {L('Simulator example · not registered with ETA', 'نموذج من المحاكي · غير مسجل لدى مصلحة الضرائب')}
+      </div>}
 
       <section className="grid sm:grid-cols-2 gap-6 py-6">
         <div>
