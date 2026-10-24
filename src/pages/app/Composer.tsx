@@ -164,19 +164,40 @@ export function Composer() {
   ];
   const refCandidates = db.docs.filter((d) => d.direction === 'sent' && d.status === 'Valid' && (d.documentType === 'I' || d.documentType === 'EI') && (!doc.customerId || d.customerId === doc.customerId));
   const customers = db.customers.filter((c) => (doc.documentType.startsWith('E') ? c.type === 'F' : true));
+  const sections = [
+    { id: 'composer-document', label: L('Document', 'المستند'), detail: doc.internalID || L('New draft', 'مسودة جديدة') },
+    { id: 'composer-customer', label: L('Customer', 'العميل'), detail: customer ? bi(lang, { en: customer.name, ar: customer.nameAr ?? customer.name }) : L('Choose who to bill', 'اختر العميل') },
+    { id: 'composer-lines', label: L('Line items', 'البنود'), detail: L(`${doc.lines.length} item${doc.lines.length === 1 ? '' : 's'}`, `${doc.lines.length} بند`) },
+    ...(!isNote ? [{ id: 'composer-payment', label: L('Payment', 'الدفع'), detail: doc.plan.kind === 'one-time' ? L('One payment', 'دفعة واحدة') : doc.plan.kind === 'recurring' ? L('Recurring', 'متكررة') : L('Installments', 'أقساط') }] : []),
+    { id: 'composer-review', label: L('Review', 'المراجعة'), detail: errors.length ? L(`${errors.length} to fix`, `${errors.length} للإصلاح`) : L('Ready to check', 'جاهز للفحص') },
+  ];
+  const issueSection = (field: string) => field.startsWith('receiver') || field.startsWith('references') ? 'composer-customer'
+    : field.startsWith('invoiceLines') || field.startsWith('taxTotals') ? 'composer-lines'
+      : field.startsWith('plan') ? 'composer-payment' : 'composer-document';
+  const jumpTo = (section: string) => document.getElementById(section)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
-    <div className="animate-in">
+    <div>
       <PageHeader
         back={<Link to="/app/documents" className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink mb-2"><ArrowLeft className="size-4 rtl:rotate-180" />{L('Invoices & notes', 'الفواتير والإشعارات')}</Link>}
         title={id ? L(`Edit ${doc.internalID}`, `تعديل ${doc.internalID}`) : L(`New ${lb.docType(doc.documentType).toLowerCase()}`, `${lb.docType(doc.documentType)} جديدة`)}
         description={L('Everything here maps 1:1 to the ETA v1.0 document. Totals use the official calculation rules.', 'كل حقل هنا يطابق مستند المصلحة الإصدار 1.0، والإجماليات بقواعد الحساب الرسمية.')}
       />
 
+      <nav className="composer-steps" aria-label={L('Invoice sections', 'أقسام الفاتورة')}>
+        {sections.map((section, index) => (
+          <button key={section.id} type="button" onClick={() => jumpTo(section.id)} className="composer-step text-start">
+            <span className="composer-step-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            <span className="min-w-0"><span className="composer-step-label">{section.label}</span><span className="composer-step-detail">{section.detail}</span></span>
+            {section.id === 'composer-review' && (errors.length ? <span className="composer-step-count" aria-label={L(`${errors.length} issues`, `${errors.length} مشكلات`)}>{errors.length}</span> : <CheckCircle2 className="size-4 text-ok shrink-0" aria-hidden="true" />)}
+          </button>
+        ))}
+      </nav>
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] items-start">
         <div className="space-y-5 min-w-0">
           {/* Document */}
-          <Card title={L('Document', 'المستند')}>
+          <Card id="composer-document" className="composer-section" title={L('Document', 'المستند')}>
             <Segmented value={doc.documentType} onChange={setType} options={typeOptions} className="w-full sm:w-auto mb-5 flex-wrap" />
             <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
               <Field label={L('Internal number', 'الرقم الداخلي')} error={fieldErr('internalID')}>
@@ -195,7 +216,7 @@ export function Composer() {
           </Card>
 
           {/* Customer */}
-          <Card title={L('Customer', 'العميل')} action={<Button size="sm" variant="quiet" icon={<UserPlus className="size-4" />} onClick={() => setNewCustomer(true)}>{L('New customer', 'عميل جديد')}</Button>}>
+          <Card id="composer-customer" className="composer-section" title={L('Customer', 'العميل')} action={<Button size="sm" variant="quiet" icon={<UserPlus className="size-4" />} onClick={() => setNewCustomer(true)}>{L('New customer', 'عميل جديد')}</Button>}>
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] items-start">
               <Field label={L('Bill to', 'إصدار إلى')} error={fieldErr('receiver')}>
                 {(fid) => (
@@ -236,7 +257,7 @@ export function Composer() {
           </Card>
 
           {/* Lines */}
-          <Card title={L('Line items', 'البنود')} subtitle={L('Pick from your catalog to fill the ETA item code, unit and taxes.', 'اختر من الأصناف لتعبئة الكود والوحدة والضرائب.')} pad={false}>
+          <Card id="composer-lines" className="composer-section" title={L('Line items', 'البنود')} subtitle={L('Pick from your catalog to fill the ETA item code, unit and taxes.', 'اختر من الأصناف لتعبئة الكود والوحدة والضرائب.')} pad={false}>
             <div className="divide-y divide-line border-t border-line">
               {doc.lines.map((l, i) => {
                 const c = computed[i];
@@ -300,7 +321,7 @@ export function Composer() {
           </Card>
 
           {/* Payment plan */}
-          {!isNote && <PlanEditor doc={doc} total={totals.totalAmount} onChange={(plan) => patch({ plan })} />}
+          {!isNote && <div id="composer-payment" className="composer-section"><PlanEditor doc={doc} total={totals.totalAmount} onChange={(plan) => patch({ plan })} /></div>}
 
           {/* More */}
           <Card>
@@ -321,7 +342,7 @@ export function Composer() {
         </div>
 
         {/* Summary rail */}
-        <aside className="xl:sticky xl:top-[88px] space-y-4">
+        <aside id="composer-review" className="composer-section xl:sticky xl:top-[88px] space-y-4">
           <Card title={L('Summary', 'الملخص')}>
             <dl className="space-y-2 text-[13.5px] tabular">
               <Row k={L('Sales total', 'إجمالي المبيعات')} v={money(totals.totalSalesAmount)} />
@@ -347,7 +368,7 @@ export function Composer() {
                 {issues.map((x, k) => (
                   <li key={k} className="flex gap-2 text-[13px]">
                     {x.level === 'error' ? (touched ? <XCircle className="size-4 text-bad shrink-0 mt-0.5" /> : <span className="size-3.5 mt-[3px] mx-px rounded-full border-[1.5px] border-ink-subtle shrink-0" />) : <AlertTriangle className="size-4 text-warn shrink-0 mt-0.5" />}
-                    <span className={x.level === 'error' && touched ? 'text-ink' : 'text-ink-muted'}>{x[lang]}</span>
+                    <button type="button" onClick={() => jumpTo(issueSection(x.field))} className={cx('text-start hover:underline underline-offset-2', x.level === 'error' && touched ? 'text-ink' : 'text-ink-muted')}>{x[lang]}</button>
                   </li>
                 ))}
               </ul>
@@ -369,7 +390,7 @@ export function Composer() {
         </aside>
       </div>
 
-      <div className="xl:hidden fixed bottom-0 inset-x-0 z-30 border-t border-line bg-surface/95 backdrop-blur px-4 py-3 flex items-center gap-3 shadow-pop">
+      <div className="composer-mobile-actions xl:hidden fixed bottom-0 inset-x-0 z-30 border-t border-line bg-surface/95 backdrop-blur px-4 py-3 flex items-center gap-3 shadow-pop">
         <div className="min-w-0 flex-1">
           <div className="text-[12px] text-ink-subtle">{L('Total', 'الإجمالي')}{errors.length ? ` · ${L(`${errors.length} to fix`, `${errors.length} للإصلاح`)}` : ''}</div>
           <div className="font-semibold tabular text-[17px] truncate">{money(totals.totalAmount)}</div>

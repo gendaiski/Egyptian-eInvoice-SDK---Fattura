@@ -305,6 +305,61 @@
 .fatura-v2-workspace-primary:hover { background: rgb(var(--surface)) !important; }
 .fatura-v2-workspace-secondary { background: transparent !important; color: rgb(var(--accent-on)) !important; border-color: rgb(var(--accent-on) / .5) !important; }
 .fatura-v2-workspace-secondary:hover { background: rgb(var(--accent-on) / .12) !important; }
+
+/* The invoice composer uses the same ledger surfaces as the dashboard. */
+.composer-steps {
+  display: flex;
+  gap: 1px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  border: 1px solid rgb(var(--line));
+  border-radius: var(--radius-card);
+  background: rgb(var(--line));
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+.composer-step {
+  display: flex;
+  flex: 1 0 180px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  background: rgb(var(--surface));
+  scroll-snap-align: start;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+.composer-step:hover { background: rgb(var(--sunken)); }
+.composer-step-number {
+  display: grid;
+  flex: 0 0 32px;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(var(--accent-soft));
+  color: rgb(var(--accent));
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.composer-step-label, .composer-step-detail { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.composer-step-label { color: rgb(var(--ink)); font-size: 13px; font-weight: 700; }
+.composer-step-detail { color: rgb(var(--ink-muted)); font-size: 11px; margin-top: 2px; }
+.composer-step-count {
+  display: grid;
+  flex: 0 0 22px;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgb(var(--bad-soft));
+  color: rgb(var(--bad));
+  font-size: 11px;
+  font-weight: 700;
+}
+.composer-section { scroll-margin-top: 88px; }
+.composer-mobile-actions { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
 @media (max-width: 960px) {
   .fatura-v2-hero-grid { grid-template-columns: 1fr; }
   .fatura-v2-hero-copy { max-width: 680px; padding-top: 0; }
