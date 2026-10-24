@@ -118,7 +118,7 @@ export interface EtaDocument {
   signatures?: Signature[];
 }
 
-/** Lifecycle status as reported by ETA. Draft/Signing are Fatura-only states. */
+/** Lifecycle status as reported by ETA. Draft/Signing are Fattura-only states. */
 export type EtaStatus = 'Submitted' | 'Valid' | 'Invalid' | 'Rejected' | 'Cancelled';
 export type DocStatus = 'Draft' | 'Signing' | EtaStatus;
 

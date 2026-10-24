@@ -1,4 +1,4 @@
-# Local full stack: Postgres + Fatura.  docker compose up --build  →  http://localhost:8787
+# Local full stack: Postgres + Fattura.  docker compose up --build  →  http://localhost:8787
 services:
   db:
     image: postgres:16-alpine

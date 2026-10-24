@@ -8,7 +8,7 @@ const emptyCompany = { name: '', nameAr: '', rin: '', activityCode: '', email: '
 /** Public view of the signing config: agent status is derived from the paired agents' heartbeats. */
 async function signingView(db: Db, tenantId: string, s: ServerSigning) {
   const { certificatePem: _pem, ...rest } = s;
-  if (s.method === 'test-certificate') return { ...rest, agent: { status: 'online', version: 'server', host: 'Fatura server (test certificate)', lastSeen: new Date().toISOString() } };
+  if (s.method === 'test-certificate') return { ...rest, agent: { status: 'online', version: 'server', host: 'Fattura server (test certificate)', lastSeen: new Date().toISOString() } };
   const [a] = await db.query<{ last_seen: string | null; version: string | null; host: string | null }>('SELECT last_seen, version, host FROM agents WHERE tenant_id = $1 AND NOT revoked ORDER BY last_seen DESC NULLS LAST LIMIT 1', [tenantId]);
   const online = !!a?.last_seen && Date.now() - new Date(a.last_seen).getTime() < 120_000;
   return { ...rest, agent: { status: online ? 'online' : 'offline', version: a?.version ?? '', host: a?.host ?? 'No signer paired', lastSeen: a?.last_seen ?? '' } };

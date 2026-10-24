@@ -4,7 +4,7 @@ Paste everything inside the fence into Codex (cloud task or CLI) with the reposi
 `gendaiski/Egyptian-eInvoice-SDK---Fattura`, branch `claude/fatura-frontend`, selected.
 
 ```text
-You are taking over Fatura, an Egyptian ETA (Egyptian Tax Authority) e-invoicing SaaS, as its lead full-stack engineer.
+You are taking over Fattura, an Egyptian ETA (Egyptian Tax Authority) e-invoicing SaaS, as its lead full-stack engineer.
 
 REPOSITORY
 - GitHub: https://github.com/gendaiski/Egyptian-eInvoice-SDK---Fattura

@@ -2,12 +2,12 @@ import { r2 } from '@/eta/calc';
 
 /**
  * How the customer pays for a document. ETA only ever sees the tax document;
- * the plan drives Fatura's receivables, reminders and (for recurring) generation.
+ * the plan drives Fattura's receivables, reminders and (for recurring) generation.
  *  - one-time:     one ETA invoice, one due date.
  *  - recurring:    a template; each run issues a NEW ETA invoice dated on the run day
  *                  (ETA rejects future-dated documents, so nothing is pre-issued).
  *  - installments: one ETA invoice for the full amount (VAT is due at issuance),
- *                  collected over a schedule tracked in Fatura.
+ *                  collected over a schedule tracked in Fattura.
  */
 export type Frequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 export type PaymentTerms = 'receipt' | 'net15' | 'net30' | 'net45' | 'net60';

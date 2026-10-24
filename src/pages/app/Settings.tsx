@@ -116,8 +116,8 @@ function DevelopersGate() {
   if (mode === 'api') return <DevelopersSection />;
   return (
     <Card title={L('API & webhooks', 'الواجهة البرمجية')}>
-      <Callout tone="info" title={L('Available on the Fatura server', 'متاح على خادم فاتورة')}>
-        {L('This demo runs entirely in your browser. On a Fatura workspace you create API keys for your ERP here and register webhook endpoints. See the Developers page for the API reference.', 'هذا العرض يعمل داخل المتصفح. في مساحة عمل فاتورة تنشئ هنا مفاتيح الواجهة البرمجية وعناوين الإشعارات.')}
+      <Callout tone="info" title={L('Available on the Fattura server', 'متاح على خادم فاتورة')}>
+        {L('This demo runs entirely in your browser. On a Fattura workspace you create API keys for your ERP here and register webhook endpoints. See the Developers page for the API reference.', 'هذا العرض يعمل داخل المتصفح. في مساحة عمل فاتورة تنشئ هنا مفاتيح الواجهة البرمجية وعناوين الإشعارات.')}
       </Callout>
     </Card>
   );
@@ -132,7 +132,7 @@ function IntegrationSection() {
   const [secret, setSecret] = useState('');
   const [envConfirm, setEnvConfirm] = useState<Integration['env'] | null>(null);
   const it = db.integration;
-  const host = (h: 'id' | 'api') => it.env === 'simulator' ? (h === 'id' ? 'Fatura ETA simulator' : 'in-process, no data leaves Fatura') : it.env === 'production' ? (h === 'id' ? 'https://id.eta.gov.eg' : 'https://api.invoicing.eta.gov.eg') : (h === 'id' ? 'https://id.preprod.eta.gov.eg' : 'https://api.preprod.invoicing.eta.gov.eg');
+  const host = (h: 'id' | 'api') => it.env === 'simulator' ? (h === 'id' ? 'Fattura ETA simulator' : 'in-process, no data leaves Fattura') : it.env === 'production' ? (h === 'id' ? 'https://id.eta.gov.eg' : 'https://api.invoicing.eta.gov.eg') : (h === 'id' ? 'https://id.preprod.eta.gov.eg' : 'https://api.preprod.invoicing.eta.gov.eg');
   const test = async () => {
     setTesting(true); setResult(null);
     const t = Date.now();
@@ -146,7 +146,7 @@ function IntegrationSection() {
   };
   return (
     <>
-      <Card title={L('ETA connection', 'الربط مع المصلحة')} subtitle={L('Fatura signs in as your ERP system with OAuth2 client credentials. Secrets are encrypted server-side and never reach the browser.', 'تتصل فاتورة كنظام ERP خاص بك. الأسرار مشفرة على الخادم.')}
+      <Card title={L('ETA connection', 'الربط مع المصلحة')} subtitle={L('Fattura signs in as your ERP system with OAuth2 client credentials. Secrets are encrypted server-side and never reach the browser.', 'تتصل فاتورة كنظام ERP خاص بك. الأسرار مشفرة على الخادم.')}
         action={it.status === 'connected' ? <Badge tone="ok" icon={<CheckCircle2 className="size-3" />}>{L('Connected', 'متصل')}</Badge> : <Badge tone="bad">{L('Not connected', 'غير متصل')}</Badge>}>
         <div className="space-y-5">
           <div>
@@ -176,7 +176,7 @@ function IntegrationSection() {
             <summary className="cursor-pointer font-medium text-ink">{L('Where do I get these?', 'من أين أحصل عليها؟')}</summary>
             <ol className="list-decimal ps-5 mt-2 space-y-1 text-ink-muted">
               <li>{L('Sign in to the ETA e-invoicing portal with the taxpayer administrator account.', 'سجّل الدخول لبوابة الفاتورة الإلكترونية بحساب مسؤول الممول.')}</li>
-              <li>{L('Open the taxpayer profile → ERP systems, and register “Fatura” as a new ERP.', 'افتح ملف الممول ← أنظمة ERP، وسجّل "فاتورة" كنظام جديد.')}</li>
+              <li>{L('Open the taxpayer profile → ERP systems, and register “Fattura” as a new ERP.', 'افتح ملف الممول ← أنظمة ERP، وسجّل "فاتورة" كنظام جديد.')}</li>
               <li>{L('Copy the generated client ID and secret here. Use the pre-production pair first and switch when your test invoices validate.', 'انسخ المعرّف والسر هنا. ابدأ ببيئة الاختبار ثم انتقل للإنتاج.')}</li>
             </ol>
           </details>
@@ -190,7 +190,7 @@ function IntegrationSection() {
       </Card>
       <Modal open={!!envConfirm} onClose={() => setEnvConfirm(null)} size="sm" title={envConfirm === 'production' ? L('Switch to production?', 'التحويل للإنتاج؟') : envConfirm === 'simulator' ? L('Switch to the simulator?', 'التحويل للمحاكي؟') : L('Switch to pre-production?', 'التحويل لبيئة الاختبار؟')}
         footer={<><Button onClick={() => setEnvConfirm(null)}>{L('Cancel', 'إلغاء')}</Button><Button variant="primary" onClick={() => { set((x) => { x.integration.env = envConfirm!; x.integration.status = envConfirm === 'simulator' ? 'connected' : 'not_configured'; }); setEnvConfirm(null); }}>{L('Switch', 'تحويل')}</Button></>}>
-        <p className="text-ink-muted">{envConfirm === 'simulator' ? L('Documents are validated by Fatura’s built-in ETA simulator and never reach the Tax Authority.', 'تتحقق محاكاة فاتورة من المستندات دون إرسالها للمصلحة.') : envConfirm === 'production' ? L('Documents you submit will be legally issued. Enter your production client ID and secret, then test the connection.', 'المستندات التي ترسلها ستكون صادرة قانونياً. أدخل بيانات الإنتاج ثم اختبر الاتصال.') : L('Documents will go to the ETA test environment and have no tax effect.', 'ستُرسل المستندات لبيئة الاختبار دون أثر ضريبي.')}</p>
+        <p className="text-ink-muted">{envConfirm === 'simulator' ? L('Documents are validated by Fattura’s built-in ETA simulator and never reach the Tax Authority.', 'تتحقق محاكاة فاتورة من المستندات دون إرسالها للمصلحة.') : envConfirm === 'production' ? L('Documents you submit will be legally issued. Enter your production client ID and secret, then test the connection.', 'المستندات التي ترسلها ستكون صادرة قانونياً. أدخل بيانات الإنتاج ثم اختبر الاتصال.') : L('Documents will go to the ETA test environment and have no tax effect.', 'ستُرسل المستندات لبيئة الاختبار دون أثر ضريبي.')}</p>
       </Modal>
     </>
   );
@@ -208,8 +208,8 @@ function SigningSection() {
       <Card title={L('How documents are signed', 'طريقة توقيع المستندات')} subtitle={L('ETA requires a CAdES-BES signature from a certificate issued to your company.', 'تتطلب المصلحة توقيعاً بشهادة صادرة لشركتك.')}>
         <div role="radiogroup" className={cx('grid gap-2 sm:grid-cols-3', mode === 'api' && 'sm:grid-cols-2 xl:grid-cols-4')}>
           {([
-            ...(mode === 'api' ? [['test-certificate', L('Test certificate', 'شهادة اختبار'), L('A self-signed certificate held by Fatura. For the simulator and pre-production only.', 'شهادة ذاتية تحتفظ بها فاتورة. للمحاكي وبيئة الاختبار فقط.')] as const] : []),
-            ['usb-token', L('USB token + Fatura Signer', 'توكن USB + برنامج التوقيع'), L('A small Windows/macOS agent on the PC holding the token. Most common.', 'برنامج صغير على الجهاز المتصل بالتوكن. الأكثر شيوعاً.')],
+            ...(mode === 'api' ? [['test-certificate', L('Test certificate', 'شهادة اختبار'), L('A self-signed certificate held by Fattura. For the simulator and pre-production only.', 'شهادة ذاتية تحتفظ بها فاتورة. للمحاكي وبيئة الاختبار فقط.')] as const] : []),
+            ['usb-token', L('USB token + Fattura Signer', 'توكن USB + برنامج التوقيع'), L('A small Windows/macOS agent on the PC holding the token. Most common.', 'برنامج صغير على الجهاز المتصل بالتوكن. الأكثر شيوعاً.')],
             ['hsm', L('HSM (on-premise)', 'HSM داخلي'), L('For high volumes and unattended recurring submission.', 'للكميات الكبيرة والإرسال التلقائي.')],
             ['cloud', L('Cloud signing (eSeal)', 'توقيع سحابي'), L('A remote seal from a licensed provider — no hardware.', 'ختم عن بُعد من مزود مرخص — بلا أجهزة.')],
           ] as (readonly [Signing['method'], string, string])[]).map(([k, t, d]) => (
@@ -222,7 +222,7 @@ function SigningSection() {
         </div>
       </Card>
       <div className="grid gap-5 md:grid-cols-2">
-        <Card title={L('Fatura Signer agent', 'وكيل التوقيع')} action={s.agent.status === 'online' ? <Badge tone="ok">{L('Online', 'متصل')}</Badge> : <Badge tone="bad">{L('Offline', 'غير متصل')}</Badge>}>
+        <Card title={L('Fattura Signer agent', 'وكيل التوقيع')} action={s.agent.status === 'online' ? <Badge tone="ok">{L('Online', 'متصل')}</Badge> : <Badge tone="bad">{L('Offline', 'غير متصل')}</Badge>}>
           <DescList cols={1} items={[
             { k: L('Machine', 'الجهاز'), v: <Mono>{s.agent.host}</Mono> },
             { k: L('Version', 'الإصدار'), v: s.agent.version },
@@ -323,7 +323,7 @@ function NumberingSection() {
         <div className="space-y-5">
           <Field label={L('Default payment terms', 'شروط الدفع الافتراضية')}>{(id) => <Select id={id} className="max-w-xs" value={db.settings.defaultTerms} onChange={(e) => set((x) => { x.settings.defaultTerms = e.target.value as typeof x.settings.defaultTerms; })}>{(['receipt', 'net15', 'net30', 'net45', 'net60'] as const).map((t) => <option key={t} value={t}>{lb.terms(t)}</option>)}</Select>}</Field>
           <Switch checked={db.settings.autoEmail} onChange={(v) => set((x) => { x.settings.autoEmail = v; })} label={L('Email customers when a document becomes Valid', 'إرسال بريد للعميل عند اعتماد المستند')} description={L('Includes the PDF and the ETA verification link.', 'يتضمن ملف PDF ورابط التحقق.')} />
-          <div className="rounded-md bg-sunken/60 border border-line p-3.5 text-[13px] text-ink-muted">{L('Individual receivers need a national ID from', 'يلزم الرقم القومي للأفراد من')} <span className="font-medium text-ink">{money(db.settings.personIdThreshold)}</span>. {L('Set by ETA; Fatura updates it centrally.', 'تحدده المصلحة وتحدّثه فاتورة مركزياً.')}</div>
+          <div className="rounded-md bg-sunken/60 border border-line p-3.5 text-[13px] text-ink-muted">{L('Individual receivers need a national ID from', 'يلزم الرقم القومي للأفراد من')} <span className="font-medium text-ink">{money(db.settings.personIdThreshold)}</span>. {L('Set by ETA; Fattura updates it centrally.', 'تحدده المصلحة وتحدّثه فاتورة مركزياً.')}</div>
         </div>
       </Card>
     </>
@@ -370,7 +370,7 @@ function BillingSection() {
   const price = { monthly: [plan.monthly, L('/ month', '/ شهر')], yearly: [plan.yearly, L('/ year', '/ سنة')], 'one-time': [plan.oneTime, L('once', 'مرة واحدة')], installments: [plan.installments.amount, L(`× ${plan.installments.count} installments`, `× ${plan.installments.count} أقساط`)] }[model] as [number, string];
   return (
     <>
-      <Card title={L('Your Fatura plan', 'باقتك في فاتورة')}>
+      <Card title={L('Your Fattura plan', 'باقتك في فاتورة')}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2"><span className="text-[20px] font-semibold">{bi(lang, { en: plan.name, ar: plan.nameAr })}</span><Badge tone="accent">{tenant.model === 'installments' ? L('Yearly in installments', 'سنوي بالتقسيط') : tenant.model === 'one-time' ? L('One-time licence', 'ترخيص دائم') : tenant.cycle === 'yearly' ? L('Billed yearly', 'سنوي') : L('Billed monthly', 'شهري')}</Badge>{tenant.status === 'trial' && <Badge tone="info">{L('Trial', 'تجريبي')}</Badge>}</div>
@@ -403,7 +403,7 @@ function BillingSection() {
           <Button variant="primary" disabled={requesting || !!tenant.pendingBilling} onClick={() => void requestChange()}>{L('Request change', 'طلب التغيير')} · {money(price[0])} {price[1]}</Button>
         </div>
       </Card>
-      <Card title={L('Invoices from Fatura', 'فواتير فاتورة')} pad={false}>
+      <Card title={L('Invoices from Fattura', 'فواتير فاتورة')} pad={false}>
         <Table>
           <thead><tr><Th>{L('Number', 'الرقم')}</Th><Th>{L('Date', 'التاريخ')}</Th><Th>{L('Status', 'الحالة')}</Th><Th align="end">{L('Amount', 'المبلغ')}</Th><Th /></tr></thead>
           <tbody>{invoices.map((i) => <tr key={i.id}><Td className="font-medium">{i.number}</Td><Td className="text-ink-muted">{date(i.issuedAt)}</Td><Td><Badge tone={i.status === 'paid' ? 'ok' : i.status === 'overdue' ? 'bad' : 'warn'}>{i.status}</Badge></Td><Td align="end"><Money value={i.amount + i.vat} /></Td><Td>{simulatorEnabled && (i.status === 'open' || i.status === 'overdue') && <Button size="sm" onClick={() => setPaymentInvoice(i)}>{L('Test payment', 'تجربة الدفع')}</Button>}</Td></tr>)}</tbody>
@@ -414,7 +414,7 @@ function BillingSection() {
       </Card>
       <Modal open={!!paymentInvoice} onClose={() => setPaymentInvoice(null)} title={L(`Test payment · ${paymentInvoice?.number ?? ''}`, `دفع اختباري · ${paymentInvoice?.number ?? ''}`)}
         footer={<><Button disabled={paying} onClick={() => setPaymentInvoice(null)}>{L('Cancel', 'إلغاء')}</Button><Button disabled={paying} onClick={() => void simulatePayment('failed')}>{L('Simulate failure', 'محاكاة فشل')}</Button><Button variant="primary" disabled={paying} onClick={() => void simulatePayment('paid')}>{L('Simulate paid', 'محاكاة النجاح')}</Button></>}>
-        <p className="text-ink-muted">{L('This tests Fatura’s billing state and audit trail. It never opens a real provider checkout or moves money.', 'يختبر هذا حالة الفوترة وسجل التدقيق فقط. لا يفتح صفحة دفع حقيقية ولا ينقل أموالاً.')}</p>
+        <p className="text-ink-muted">{L('This tests Fattura’s billing state and audit trail. It never opens a real provider checkout or moves money.', 'يختبر هذا حالة الفوترة وسجل التدقيق فقط. لا يفتح صفحة دفع حقيقية ولا ينقل أموالاً.')}</p>
       </Modal>
     </>
   );

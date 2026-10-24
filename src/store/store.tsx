@@ -88,7 +88,7 @@ function ApiStoreProvider({ children }: { children: ReactNode }) {
       <div className="min-h-screen grid place-items-center p-6 text-center bg-canvas text-ink">
         {failed ? (
           <div className="max-w-sm">
-            <p className="font-semibold">Fatura can’t reach its server.</p>
+            <p className="font-semibold">Fattura can’t reach its server.</p>
             <p className="mt-1 text-ink-muted text-[14px]">{failed}</p>
             <button className="mt-4 underline text-accent" onClick={() => reload()}>Try again</button>
           </div>

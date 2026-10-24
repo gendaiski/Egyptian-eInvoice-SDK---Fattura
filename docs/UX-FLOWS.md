@@ -5,7 +5,7 @@ Sign up → **Onboarding** (4 steps, each must pass before the next unlocks):
 1. *Company*: RIN is verified against the taxpayer registry, then the legal names (EN/AR) and the activity code.
 2. *Head office*: the address must match the ETA registration and is sent as `branchID 0`.
 3. *ETA connection*: pre-production is recommended first. "Test connection" proves the credentials.
-4. *Signing*: install Fatura Signer, plug in the token, then "Detect". A test signature checks that the certificate belongs to the RIN.
+4. *Signing*: install Fattura Signer, plug in the token, then "Detect". A test signature checks that the certificate belongs to the RIN.
 
 The trial runs on pre-production, so mistakes cost nothing. The switch to production is an
 explicit confirmation in Settings.

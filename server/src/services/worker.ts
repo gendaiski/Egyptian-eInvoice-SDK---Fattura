@@ -27,7 +27,7 @@ export async function tick(db: Db) {
     const r = repo(db);
     for (const it of j.items) {
       const d = await r.doc(j.tenant_id, it.docId);
-      if (d?.status === 'Signing') { d.status = 'Draft'; d.events.push({ at: new Date().toISOString(), type: 'signing_expired', by: 'Fatura', note: 'The signer did not respond. Submit again when it is online.' }); await r.putDoc(j.tenant_id, d); }
+      if (d?.status === 'Signing') { d.status = 'Draft'; d.events.push({ at: new Date().toISOString(), type: 'signing_expired', by: 'Fattura', note: 'The signer did not respond. Submit again when it is online.' }); await r.putDoc(j.tenant_id, d); }
     }
     await r.notify(j.tenant_id, 'warn', { en: 'Signing timed out — the documents are back in drafts.', ar: 'انتهت مهلة التوقيع — عادت المستندات إلى المسودات.' }, '/app/documents?status=Draft');
   }

@@ -19,7 +19,7 @@ export interface EtaSearchResult {
 
 export interface CodeUsageRequest { codeType: 'EGS'; parentCode: string; itemCode: string; codeName: string; codeNameAr: string; activeFrom: string; description: string; descriptionAr?: string; requestReason?: string }
 
-/** Everything Fatura needs from ETA, one method per SDK operation. Implemented over HTTP and by the simulator. */
+/** Everything Fattura needs from ETA, one method per SDK operation. Implemented over HTTP and by the simulator. */
 export interface EtaApi {
   readonly env: EtaEnv;
   login(): Promise<{ accessToken: string; expiresIn: number }>;

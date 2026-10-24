@@ -71,7 +71,7 @@ export function requireTenant(c: Context, opts: { write?: boolean; roles?: strin
 
 export function requireStaff(c: Context, roles?: string[]): SessionUser {
   const u = requireUser(c);
-  if (!u.staffRole) throw new HttpError(403, 'forbidden', 'Fatura staff only.');
+  if (!u.staffRole) throw new HttpError(403, 'forbidden', 'Fattura staff only.');
   if (roles && !roles.includes(u.staffRole)) throw new HttpError(403, 'forbidden', `Requires ${roles.join(' or ')}.`);
   return u;
 }

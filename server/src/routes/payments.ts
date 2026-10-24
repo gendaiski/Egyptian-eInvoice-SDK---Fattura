@@ -15,7 +15,7 @@ const requireSimulator = () => { if (!enabled()) throw new HttpError(409, 'payme
 payments.get('/providers', (c) => {
   requireTenant(c);
   return c.json({ providers: [
-    { id: 'simulator', name: 'Fatura test payments', enabled: enabled(), movesMoney: false },
+    { id: 'simulator', name: 'Fattura test payments', enabled: enabled(), movesMoney: false },
     { id: 'paymob', name: 'Paymob', enabled: false, movesMoney: true, reason: 'Awaiting verified sandbox API contract and account credentials.' },
     { id: 'fawry', name: 'Fawry', enabled: false, movesMoney: true, reason: 'Connector not configured.' },
     { id: 'bank-transfer', name: 'Bank transfer', enabled: false, movesMoney: false, reason: 'Use staff-recorded payment evidence after reconciliation.' },

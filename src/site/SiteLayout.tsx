@@ -23,7 +23,7 @@ function useNav() {
       { to: '/security', title: L('Security', 'الأمان') },
       { to: '/status', title: L('System status', 'حالة النظام') },
       { to: '/design-system', title: L('Design system', 'نظام التصميم') },
-      { to: '/about', title: L('About Fatura', 'عن فاتورة') },
+      { to: '/about', title: L('About Fattura', 'عن فاتورة') },
     ],
   };
 }
@@ -83,7 +83,7 @@ export function SiteLayout() {
       )}
       <header className="sticky top-0 z-30 bg-canvas/85 backdrop-blur border-b border-line" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
         <Wrap className="h-16 flex items-center gap-2">
-          <Link to="/" aria-label="Fatura" className="me-4"><Logo /></Link>
+          <Link to="/" aria-label="Fattura" className="me-4"><Logo /></Link>
           <nav className="hidden lg:flex items-center gap-0.5" aria-label={L('Main', 'الرئيسية')}>
             <Dropdown label={L('Product', 'المنتج')}>
               <div className="grid grid-cols-2 gap-1">
@@ -153,7 +153,7 @@ export function SiteLayout() {
           ))}
         </Wrap>
         <Wrap className="py-5 border-t border-line flex flex-wrap items-center justify-between gap-3 text-[12.5px] text-ink-subtle">
-          <span>© {new Date().getFullYear()} Fatura</span>
+          <span>© {new Date().getFullYear()} Fattura</span>
           <span className="flex items-center gap-4">
             <Link to="/app" className="hover:text-ink">{L('Open the demo workspace', 'افتح مساحة العرض')}</Link>
             <Link to="/admin" className="hover:text-ink">{L('Staff sign-in', 'دخول الموظفين')}</Link>

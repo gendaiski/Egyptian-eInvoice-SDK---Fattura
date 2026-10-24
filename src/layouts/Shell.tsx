@@ -126,7 +126,7 @@ function UserMenu({ admin }: { admin?: boolean }) {
         </div>
         {canSwitch && <Link to={admin ? '/app' : '/admin'} onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-3.5 h-9 text-[13.5px] hover:bg-sunken">
           {admin ? <ArrowLeftRight className="size-4 text-ink-muted" /> : <Shield className="size-4 text-ink-muted" />}
-          {admin ? L('Open taxpayer workspace', 'فتح مساحة الممول') : L('Fatura admin panel', 'لوحة إدارة فاتورة')}
+          {admin ? L('Open taxpayer workspace', 'فتح مساحة الممول') : L('Fattura admin panel', 'لوحة إدارة فاتورة')}
         </Link>}
         <button onClick={async () => { setOpen(false); await auth.logout(); nav('/signin'); }} className="w-full flex items-center gap-2.5 px-3.5 h-9 text-[13.5px] hover:bg-sunken">
           <LogOut className="size-4 text-ink-muted" />{L('Sign out', 'تسجيل الخروج')}
@@ -198,7 +198,7 @@ export function Shell({ groups, sidebarHeader, sidebarFooter, topbarStart, palet
 
   const brand = (
     <div className="flex items-center justify-between h-16 px-5 shrink-0">
-      <Link to={admin ? '/admin' : '/app'} aria-label="Fatura"><Logo latinOnly={admin} /></Link>
+      <Link to={admin ? '/admin' : '/app'} aria-label="Fattura"><Logo latinOnly={admin} /></Link>
       {admin && <Badge tone="accent">{L('Admin', 'الإدارة')}</Badge>}
     </div>
   );

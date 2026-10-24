@@ -58,7 +58,7 @@ export function Home() {
               <span className="inline-flex items-center gap-2"><span className="size-2 rounded-full bg-accent" />{L('Document preview', 'معاينة المستند')}</span>
               <span className="fatura-v2-stage-demo">{L('Sample · simulator', 'نموذج · محاكاة')}</span>
             </div>
-            <div className="fatura-v2-invoice-frame" aria-label={L('A sample invoice produced by Fatura in the simulator', 'نموذج فاتورة من فاتورة في بيئة المحاكاة')}>
+            <div className="fatura-v2-invoice-frame" aria-label={L('A sample invoice produced by Fattura in the simulator', 'نموذج فاتورة من فاتورة في بيئة المحاكاة')}>
               <div className="[&_.print-area]:shadow-pop pointer-events-none select-none">
                 <InvoicePaper doc={sample} company={db.company} env="simulator" />
               </div>
@@ -85,7 +85,7 @@ export function Home() {
 
       {/* Lifecycle: a real sequence, so numbering is information */}
       <Section>
-        <SectionHead title={L('Every document, from draft to Valid', 'كل مستند، من المسودة إلى الاعتماد')} lead={L('The same four steps ETA runs. Fatura shows you where each document is, and why — before your customer asks.', 'نفس الخطوات الأربع لدى المصلحة. فاتورة توضح لك أين يقف كل مستند ولماذا.')} />
+        <SectionHead title={L('Every document, from draft to Valid', 'كل مستند، من المسودة إلى الاعتماد')} lead={L('The same four steps ETA runs. Fattura shows you where each document is, and why — before your customer asks.', 'نفس الخطوات الأربع لدى المصلحة. فاتورة توضح لك أين يقف كل مستند ولماذا.')} />
         <ol className="grid gap-px rounded-card overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {[
             [L('Draft', 'مسودة'), L('Built in the composer with the official tax maths. Pre-flight runs the ETA rules as you type.', 'تُبنى بقواعد الحساب الرسمية ويُفحص المستند أثناء الكتابة.'), <CheckCircle2 key="a" />],
@@ -221,9 +221,9 @@ export function Home() {
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
           <SectionHead className="mb-0" title={L('Questions finance teams ask first', 'أول أسئلة الفرق المالية')} lead={<>{L('More in the', 'المزيد في')} <Link className="link" to="/eta-guide">{L('ETA guide', 'دليل المصلحة')}</Link>.</>} />
           <Faq items={[
-            [L('Do I need my own ETA credentials?', 'هل أحتاج بيانات ربط خاصة بي؟'), L('Yes. Each taxpayer registers Fatura as an ERP on the ETA portal and gets a client ID and secret. Setup walks you through it.', 'نعم. كل ممول يسجل فاتورة كنظام ERP ويحصل على معرّف وسر، والإعداد يرشدك.')],
+            [L('Do I need my own ETA credentials?', 'هل أحتاج بيانات ربط خاصة بي؟'), L('Yes. Each taxpayer registers Fattura as an ERP on the ETA portal and gets a client ID and secret. Setup walks you through it.', 'نعم. كل ممول يسجل فاتورة كنظام ERP ويحصل على معرّف وسر، والإعداد يرشدك.')],
             [L('Can recurring invoices go out while I am away?', 'هل تُرسل الفواتير المتكررة في غيابي؟'), L('With cloud or HSM signing, yes. With a USB token, runs wait as drafts until the signer is online and you get a notification.', 'مع التوقيع السحابي نعم. مع التوكن تنتظر كمسودات حتى يتصل البرنامج.')],
-            [L('How are installments taxed?', 'كيف تُحتسب ضريبة الأقساط؟'), L('VAT is due on issue, so ETA receives one invoice for the full amount and Fatura tracks the installments as receivables.', 'الضريبة مستحقة عند الإصدار، فتصدر فاتورة واحدة وتُتابع الأقساط كمستحقات.')],
+            [L('How are installments taxed?', 'كيف تُحتسب ضريبة الأقساط؟'), L('VAT is due on issue, so ETA receives one invoice for the full amount and Fattura tracks the installments as receivables.', 'الضريبة مستحقة عند الإصدار، فتصدر فاتورة واحدة وتُتابع الأقساط كمستحقات.')],
             [L('What if ETA marks a document Invalid?', 'ماذا لو اعتُبر المستند غير صالح؟'), L('You see the failing validator and field. One click creates a corrected copy to resubmit; the invalid one stays on record.', 'ترى سبب الرفض والحقل. بنقرة تنشئ نسخة مصححة لإعادة الإرسال.')],
           ]} />
         </div>

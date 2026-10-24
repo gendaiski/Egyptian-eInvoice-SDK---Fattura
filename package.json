@@ -1,9 +1,9 @@
 {
-  "name": "fatura",
+  "name": "fattura",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Fatura — Egyptian ETA e-invoicing SaaS: taxpayer workspace and platform admin panel",
+  "description": "Fattura — Egyptian ETA e-invoicing SaaS: taxpayer workspace and platform admin panel",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

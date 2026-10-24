@@ -235,7 +235,7 @@ describe('integration API (API keys)', () => {
 });
 
 describe('received documents between two tenants', () => {
-  it('routes an invoice issued to another Fatura tenant into its inbox, where it can be rejected', async () => {
+  it('routes an invoice issued to another Fattura tenant into its inbox, where it can be rejected', async () => {
     // Tenant B signs up and is onboarded with the RIN that tenant A invoices.
     const b = client(app);
     await b.post('/v1/auth/signup', { name: 'Buyer Admin', company: 'Buyer Co', email: 'buyer@example.com', password: 'longpassword1' });

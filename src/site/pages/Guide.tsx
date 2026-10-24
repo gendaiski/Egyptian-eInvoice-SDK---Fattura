@@ -27,7 +27,7 @@ export function Guide() {
   ];
   const checklist = [
     ['portal', L('We can sign in to the ETA e-invoicing portal as taxpayer administrator', 'لدينا دخول مسؤول الممول على بوابة الفاتورة')],
-    ['erp', L('Fatura is registered as an ERP system and we have pre-production credentials', 'سجلنا فاتورة كنظام ERP ولدينا بيانات الاختبار')],
+    ['erp', L('Fattura is registered as an ERP system and we have pre-production credentials', 'سجلنا فاتورة كنظام ERP ولدينا بيانات الاختبار')],
     ['token', L('We have a signing certificate on a USB token (or a cloud/HSM option)', 'لدينا شهادة توقيع على توكن أو بديل سحابي')],
     ['branches', L('Our branches and their ETA branch codes are known', 'نعرف فروعنا وأكوادها لدى المصلحة')],
     ['codes', L('Every item we sell has a GS1 barcode or an approved EGS code', 'كل صنف له باركود GS1 أو كود EGS معتمد')],
@@ -63,7 +63,7 @@ export function Guide() {
           <P>{L('A submitted document is Submitted until ETA finishes validation, then Valid or Invalid. A Valid document can later be Cancelled by the issuer or Rejected by the receiver, within the windows below. An Invalid document has no tax effect: fix it and submit a new one.', 'المستند المُرسل يبقى "مُرسلاً" حتى انتهاء التحقق ثم صالحاً أو غير صالح. يمكن للمُصدر إلغاء الصالح أو للمستلم رفضه خلال المهل. غير الصالح لا أثر ضريبي له.')}</P>
 
           <H id="signing">{sections[3][1]}</H>
-          <P>{L('Each document is serialized into a canonical string, hashed with SHA-256 and signed CAdES-BES with your company certificate — most commonly on a USB token from a licensed certificate authority. The private key never leaves the token; Fatura Signer passes it only the hash.', 'يُحوّل كل مستند لصيغة موحدة ثم بصمة SHA-256 ويوقّع CAdES-BES بشهادة الشركة، غالباً على توكن من جهة مرخصة. المفتاح لا يغادر التوكن.')}</P>
+          <P>{L('Each document is serialized into a canonical string, hashed with SHA-256 and signed CAdES-BES with your company certificate — most commonly on a USB token from a licensed certificate authority. The private key never leaves the token; Fattura Signer passes it only the hash.', 'يُحوّل كل مستند لصيغة موحدة ثم بصمة SHA-256 ويوقّع CAdES-BES بشهادة الشركة، غالباً على توكن من جهة مرخصة. المفتاح لا يغادر التوكن.')}</P>
 
           <H id="codes">{sections[4][1]}</H>
           <P>{L('Every line needs an item code ETA accepts for you: a GS1 barcode, or your own EGS code (EG-<your tax number>-<code>) that you request and ETA approves. Using a code before approval is the most common reason for Invalid documents.', 'كل بند يحتاج كوداً مقبولاً: باركود GS1 أو كود EGS خاص بك تطلبه وتعتمده المصلحة. استخدام الكود قبل اعتماده أكثر أسباب الرفض.')}</P>
@@ -75,10 +75,10 @@ export function Guide() {
           </div>
 
           <H id="receivers">{sections[6][1]}</H>
-          <P>{L(`Business receivers (B) need their 9-digit tax registration number. Individuals (P) need a 14-digit national ID once the document total reaches the threshold — Fatura applies ${money(db.settings.personIdThreshold)}. Foreign receivers (F) need a name and a non-Egyptian country.`, `المستلم التجاري يحتاج رقمه الضريبي، والفرد يحتاج الرقم القومي عند بلوغ الحد (تطبق فاتورة ${money(db.settings.personIdThreshold)})، والأجنبي يحتاج اسماً ودولة غير مصر.`)}</P>
+          <P>{L(`Business receivers (B) need their 9-digit tax registration number. Individuals (P) need a 14-digit national ID once the document total reaches the threshold — Fattura applies ${money(db.settings.personIdThreshold)}. Foreign receivers (F) need a name and a non-Egyptian country.`, `المستلم التجاري يحتاج رقمه الضريبي، والفرد يحتاج الرقم القومي عند بلوغ الحد (تطبق فاتورة ${money(db.settings.personIdThreshold)})، والأجنبي يحتاج اسماً ودولة غير مصر.`)}</P>
 
           <H id="windows">{sections[7][1]}</H>
-          <P>{L(`ETA sets per-document-type windows for cancelling, rejecting and declining. Fatura reads them from the document-type settings and shows a countdown on each document; at the time of writing the demo uses ${DOCUMENT_TYPES[0].workflowParameters.cancellationWindowHours / 24} days. After the window, adjust with a credit or debit note.`, `تحدد المصلحة مهل الإلغاء والرفض لكل نوع مستند، وتعرض فاتورة عداداً لكل مستند (يستخدم العرض ${DOCUMENT_TYPES[0].workflowParameters.cancellationWindowHours / 24} أيام). بعد المهلة استخدم الإشعارات.`)}</P>
+          <P>{L(`ETA sets per-document-type windows for cancelling, rejecting and declining. Fattura reads them from the document-type settings and shows a countdown on each document; at the time of writing the demo uses ${DOCUMENT_TYPES[0].workflowParameters.cancellationWindowHours / 24} days. After the window, adjust with a credit or debit note.`, `تحدد المصلحة مهل الإلغاء والرفض لكل نوع مستند، وتعرض فاتورة عداداً لكل مستند (يستخدم العرض ${DOCUMENT_TYPES[0].workflowParameters.cancellationWindowHours / 24} أيام). بعد المهلة استخدم الإشعارات.`)}</P>
 
           <H id="checklist">{sections[8][1]}</H>
           <div className="mt-5 card p-6">

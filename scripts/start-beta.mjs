@@ -22,7 +22,7 @@ const localEnv = {
   PGLITE_DIR: dataDir,
   APP_SECRET: secrets.appSecret,
   APP_ENCRYPTION_KEY: secrets.encryptionKey,
-  PORT: process.env.FATURA_BETA_PORT ?? '8787',
+  PORT: process.env.FATTURA_BETA_PORT ?? process.env.FATURA_BETA_PORT ?? '8787',
   SEED_DEMO: 'true',
   WORKER: 'off',
   ETA_PRODUCTION_SUBMISSION_ENABLED: 'false',

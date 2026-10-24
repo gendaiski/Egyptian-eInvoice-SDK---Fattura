@@ -128,7 +128,7 @@ actions.post('/signing/agents', async (c) => {
   const id = newId('ag');
   await db.query('INSERT INTO agents (id, tenant_id, name, token_hash) VALUES ($1,$2,$3,$4)', [id, u.tenantId, String(name ?? 'Signer'), sha256(t)]);
   await repo(db).audit(u.email, 'signer.paired', String(name ?? id), u.tenantId, ip(c));
-  return c.json({ id, token: t, note: 'Shown once. Paste it into Fatura Signer.' }, 201);
+  return c.json({ id, token: t, note: 'Shown once. Paste it into Fattura Signer.' }, 201);
 });
 actions.get('/signing/agents', async (c) => {
   const u = requireTenant(c);
@@ -162,7 +162,7 @@ actions.post('/webhooks', async (c) => {
   const secret = token('whsec', 24);
   const id = newId('wh');
   await (await getDb()).query('INSERT INTO webhooks (id, tenant_id, url, secret_enc, events) VALUES ($1,$2,$3,$4,$5)', [id, u.tenantId, url, encrypt(secret), JSON.stringify(ev)]);
-  return c.json({ id, secret, note: 'Verify X-Fatura-Signature with this secret. Shown once.' }, 201);
+  return c.json({ id, secret, note: 'Verify X-Fattura-Signature with this secret. Shown once.' }, 201);
 });
 actions.delete('/webhooks/:id', async (c) => { const u = requireTenant(c, { roles: ['Owner', 'Admin'] }); await (await getDb()).query('DELETE FROM webhooks WHERE id = $1 AND tenant_id = $2', [c.req.param('id'), u.tenantId]); return c.json({ ok: true }); });
 

@@ -1,12 +1,12 @@
-# Fatura integration API
+# Fattura integration API
 
 Three ways in, each with its own credential:
 
 | Who | Base path | Credential |
 |---|---|---|
 | ERPs, scripts, accounting systems | `/api/v1/ext` | `Authorization: Bearer fat_live_…` — created in **Settings → API & webhooks** |
-| Fatura Signer (USB token PC) | `/api/v1/signer` | `Authorization: Agent fat_agent_…` — created in **Settings → Signing → Pair a signer** |
-| The Fatura web app | `/api/v1` | HTTP-only session cookie from `POST /api/v1/auth/login` |
+| Fattura Signer (USB token PC) | `/api/v1/signer` | `Authorization: Agent fat_agent_…` — created in **Settings → Signing → Pair a signer** |
+| The Fattura web app | `/api/v1` | HTTP-only session cookie from `POST /api/v1/auth/login` |
 
 Keys and agent tokens are shown once, stored as SHA-256 hashes, and can be revoked at any time.
 All bodies are JSON (UTF-8, Arabic unescaped). Errors look like:
@@ -57,10 +57,10 @@ Idempotent by `internal_id`: sending the same `internal_id` again returns the ex
 ```
 
 - `type`: `I` invoice, `C` credit note, `D` debit note, `EI` export invoice. Notes need `references` (ETA UUIDs).
-- `customer`: a Fatura customer id, or an inline party `{ "type": "B" | "P" | "F", "id": "…", "name": "…", "address": { … } }`.
-- `lines[].item`: a Fatura item id (code, unit, price and taxes come from the item), or give them inline.
+- `customer`: a Fattura customer id, or an inline party `{ "type": "B" | "P" | "F", "id": "…", "name": "…", "address": { … } }`.
+- `lines[].item`: a Fattura item id (code, unit, price and taxes come from the item), or give them inline.
 - `payment_plan`: omit for one payment; `{ "kind": "one-time", "terms": "net30" }`, recurring or installments.
-  ETA always receives one tax document; the plan drives Fatura's receivables.
+  ETA always receives one tax document; the plan drives Fattura's receivables.
 - `submit: true` runs pre-flight validation, signs (test certificate, HSM or queued for the USB signer) and submits to ETA.
 
 Response `201`:
@@ -82,7 +82,7 @@ Pre-flight failures return `422` with the failing rules in `details` and nothing
 | Method | Path | Notes |
 |---|---|---|
 | `GET` | `/documents?status=Valid,Invalid&direction=sent\|received&issued_from=&issued_to=&limit=50&offset=0` | `{ data, total, limit, offset }` |
-| `GET` | `/documents/{id}` | `id` may be the Fatura id, the ETA UUID or your `internal_id` |
+| `GET` | `/documents/{id}` | `id` may be the Fattura id, the ETA UUID or your `internal_id` |
 | `POST` | `/documents/{id}/submit` | Submit a draft |
 | `POST` | `/documents/{id}/cancel` | `{ "reason": "…" }` — inside ETA's cancellation window |
 | `GET` / `POST` | `/customers` | List / create customers |
@@ -93,10 +93,12 @@ Pre-flight failures return `422` with the failing rules in `details` and nothing
 Register HTTPS endpoints in **Settings → API & webhooks**. Each delivery is a `POST`:
 
 ```
-X-Fatura-Event: document.validated
-X-Fatura-Delivery: evt_…
-X-Fatura-Signature: sha256=<hex HMAC-SHA256 of the raw body with your endpoint secret>
+X-Fattura-Event: document.validated
+X-Fattura-Delivery: evt_…
+X-Fattura-Signature: sha256=<hex HMAC-SHA256 of the raw body with your endpoint secret>
 ```
+
+For existing integrations, deliveries also include the equivalent `X-Fatura-*` headers. New integrations should use `X-Fattura-*`.
 
 Events: `document.submitted`, `document.validated`, `document.invalid`, `document.cancelled`,
 `document.rejected`, `document.cancellation_declined`, `document.rejection_declined`,
@@ -126,7 +128,7 @@ signature. The server verifies it against the tenant's certificate before submit
 `POST /api/cron/tick` (header `Authorization: Bearer $CRON_SECRET`) runs recurring invoices, polls ETA for
 submitted documents, refreshes code requests, syncs received documents and delivers webhooks.
 The Node server runs it every minute; on Vercel it is a cron job.
-## Fatura v2 production submission gate
+## Fattura v2 production submission gate
 
 To submit to **production ETA**, the server operator must set
 `ETA_PRODUCTION_SUBMISSION_ENABLED=true`, and each submit request must explicitly

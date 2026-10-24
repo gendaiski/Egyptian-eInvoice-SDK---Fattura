@@ -1,9 +1,9 @@
-# Fatura · فاتورة
+# Fattura · فاتورة
 
 Egyptian e-invoicing SaaS built on the Egyptian Tax Authority (ETA) eInvoicing SDK.
 This repository contains the **whole product**:
 
-> **Fatura v2 review branch:** `codex/fattura-egypt-v2` makes production ETA submissions
+> **Fattura v2 review branch:** `codex/fattura-egypt-v2` makes production ETA submissions
 > opt-in at both server and request level. The independent [Meridian M&A system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is reviewed in Sandbox-2, with its own server, data and UI. See the
 > [v2 source audit](docs/V2-SOURCE-AUDIT.md) for verified scope and blockers. The existing
 > production deployment remains on its original branch.
@@ -17,19 +17,19 @@ Compare the original branch with the v2 review build in the [Fattura v1–v2 com
 > Paymob, Fawry and real ETA remain separate external acceptance gates; the local simulator
 > never charges money or sends a production tax document.
 
-- **Front end** — the public website (15 pages), the taxpayer workspace, the Fatura platform admin panel,
+- **Front end** — the public website (15 pages), the taxpayer workspace, the Fattura platform admin panel,
   sign-in and onboarding, one app sharing one design system.
 - **Back end** — a Node API (Hono) on Postgres: accounts and tenants, the sign → submit → poll document
   pipeline, a real ETA HTTP client, an in-process **ETA simulator**, CAdES-BES signing, a background worker,
   an **integration API** for ERPs with API keys, idempotency and signed webhooks.
-- **Fatura Signer** — a small agent for the PC holding the company's USB token (PKCS#11), in `signer-agent/`.
+- **Fattura Signer** — a small agent for the PC holding the company's USB token (PKCS#11), in `signer-agent/`.
 
 The front end runs in two modes: against the server (`VITE_DATA=api`, the default for deployments) or as a
 self-contained browser demo with a deterministic ETA mock (the live preview artifact).
 
 - Bilingual **English / Arabic** with full RTL, light and dark themes, responsive down to 360 px.
 - Three ways to get paid: **one payment**, **recurring**, and **installments**. ETA always
-  receives a single valid tax document. The plan drives Fatura's receivables and scheduling.
+  receives a single valid tax document. The plan drives Fattura's receivables and scheduling.
 - ETA tax maths (T1–T20), canonical serialization for signing, and pre-flight validation are
   implemented as tested, framework-free modules in `src/eta/` that the backend can reuse.
 
@@ -43,13 +43,13 @@ npm run build:server && VITE_DATA=api npx vite build
 npm run start                    # http://localhost:8787
 ```
 
-For an independent Fatura v2 local review, use a fresh data directory rather than the existing `.data`:
+For an independent Fattura v2 local review, use a fresh data directory rather than the existing `.data`:
 
 ```bash
 PGLITE_DIR=./.data-v2-review PORT=8788 npm run start
 ```
 
-The independent [Meridian M&A system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is reviewed separately in Sandbox-2. It does not share Fatura routes, credentials, database, design system or process.
+The independent [Meridian M&A system](https://github.com/gendaiski/Sandbox-2/tree/codex/native-landings-20261023/systems/meridian-ma-diligence) is reviewed separately in Sandbox-2. It does not share Fattura routes, credentials, database, design system or process.
 
 Development: `npm run dev:server` (API on :8787) and `VITE_DATA=api npm run dev` (Vite on :5173 proxies /api).
 With Docker and a real Postgres: `docker compose up --build`. Configuration: see `.env.example`.
@@ -57,7 +57,7 @@ With Docker and a real Postgres: `docker compose up --build`. Configuration: see
 | Test login | Password | Opens |
 |---|---|---|
 | `demo@fatura.eg` | `fatura-demo-2026` | Taxpayer workspace (demo company, ETA simulator, test certificate) |
-| `admin@fatura.eg` | `fatura-admin-2026` | Fatura admin panel |
+| `admin@fatura.eg` | `fatura-admin-2026` | Fattura admin panel |
 
 New sign-ups get their own tenant on the ETA simulator; switch to pre-production in
 Settings → ETA connection once you have ETA ERP credentials.
@@ -67,7 +67,7 @@ npm test               # 42 tests: tax maths, serialization, validation, schedul
 npm run typecheck
 npm run build:preview  # single-file browser-only demo with a guided test-scenario panel (dist-preview/fatura.html)
 npm run build:vercel   # Vercel Build Output (.vercel/output)
-npm run build:signer   # bundles Fatura Signer (signer-agent/dist/fatura-signer.mjs)
+npm run build:signer   # bundles Fattura Signer (signer-agent/dist/fatura-signer.mjs)
 ```
 
 ## Deploy
@@ -120,7 +120,7 @@ server/
   src/db/              Postgres / PGlite client, migrations, seed
   test/                API, signing and ETA-client tests
   node.ts · vercel.ts  entry points
-signer-agent/          Fatura Signer for USB tokens (PKCS#11) or .p12 files
+signer-agent/          Fattura Signer for USB tokens (PKCS#11) or .p12 files
 ```
 
 ## How the website connects to the system
@@ -136,11 +136,11 @@ signer-agent/          Fatura Signer for USB tokens (PKCS#11) or .p12 files
 - Front end and back end are complete and tested end to end (browser → API → signing → ETA simulator → Valid),
   on both embedded Postgres and Postgres 16.
 - Going live with ETA needs things only the taxpayer can supply: ERP client credentials from the ETA portal,
-  a signing certificate on a USB token (Egypt Trust, MCDR, Fixed Misr) paired through Fatura Signer, and
+  a signing certificate on a USB token (Egypt Trust, MCDR, Fixed Misr) paired through Fattura Signer, and
   a first round of test submissions on ETA pre-production to confirm field-level rules.
-- Not built: card/payment-gateway collection for Fatura's own subscriptions (billing is tracked and invoiced,
+- Not built: card/payment-gateway collection for Fattura's own subscriptions (billing is tracked and invoiced,
   payments are recorded manually), outbound email delivery (hook point: `autoEmail`), and POS e-receipt submission.
 - `sdk.invoicing.eta.gov.eg` was not reachable from the build environment. The spec here was
   assembled from the SDK's published structure and needs confirming against the live SDK.
   Items to verify are listed at the end of `docs/ETA-SDK-MAPPING.md`.
-- Fatura is independent software and is not affiliated with the Egyptian Tax Authority.
+- Fattura is independent software and is not affiliated with the Egyptian Tax Authority.

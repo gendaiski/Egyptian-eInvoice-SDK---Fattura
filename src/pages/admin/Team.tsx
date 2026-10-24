@@ -18,7 +18,7 @@ export function AdminTeam() {
   ];
   return (
     <div className="animate-in">
-      <PageHeader title={L('Admin team & roles', 'فريق الإدارة والأدوار')} description={L('Fatura staff. Tenant data is never editable from here — support sessions are read-only and audited.', 'موظفو فاتورة. لا يمكن تعديل بيانات الشركات من هنا — جلسات الدعم للقراءة فقط ومسجلة.')}
+      <PageHeader title={L('Admin team & roles', 'فريق الإدارة والأدوار')} description={L('Fattura staff. Tenant data is never editable from here — support sessions are read-only and audited.', 'موظفو فاتورة. لا يمكن تعديل بيانات الشركات من هنا — جلسات الدعم للقراءة فقط ومسجلة.')}
         actions={<Button variant="primary" icon={<UserPlus className="size-4" />} disabled title={L('Staff invitations and MFA enrollment are not configured', 'الدعوات وتسجيل التحقق الثنائي غير مفعّلين')}>{L('Invites unavailable', 'الدعوات غير متاحة')}</Button>} />
       <Card pad={false} className="mb-5">
         <Table>

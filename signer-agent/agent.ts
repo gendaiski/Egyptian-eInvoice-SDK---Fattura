@@ -1,11 +1,11 @@
 /**
- * Fatura Signer — runs on the Windows/macOS/Linux machine that holds the signing certificate.
- * It never sends the private key anywhere: Fatura sends the canonical document text, the agent
+ * Fattura Signer — runs on the Windows/macOS/Linux machine that holds the signing certificate.
+ * It never sends the private key anywhere: Fattura sends the canonical document text, the agent
  * builds a CAdES-BES signature locally (USB token via PKCS#11, or a .p12 file) and returns it.
  *
  * Configuration (environment variables):
- *   FATURA_URL           https://your-fatura-host            (required)
- *   FATURA_AGENT_TOKEN   fat_agent_… from Settings → Signing  (required)
+ *   FATTURA_URL           https://your-fattura-host            (required)
+ *   FATTURA_AGENT_TOKEN   fat_agent_… from Settings → Signing  (required)
  *   SIGNER               pkcs11 | pfx                         (default pkcs11)
  *   PKCS11_LIB           path to the token's PKCS#11 library, e.g. C:\Windows\System32\eps2003csp11.dll
  *   PKCS11_PIN           token PIN
@@ -20,9 +20,9 @@ import forge from 'node-forge';
 import { signCades, softwareSigner, type RawSigner } from '../server/src/signing/cades';
 
 const VERSION = '1.0.0';
-const URL_BASE = (process.env.FATURA_URL ?? '').replace(/\/$/, '');
-const TOKEN = process.env.FATURA_AGENT_TOKEN ?? '';
-if (!URL_BASE || !TOKEN) { console.error('Set FATURA_URL and FATURA_AGENT_TOKEN.'); process.exit(1); }
+const URL_BASE = (process.env.FATTURA_URL ?? process.env.FATURA_URL ?? '').replace(/\/$/, '');
+const TOKEN = process.env.FATTURA_AGENT_TOKEN ?? process.env.FATURA_AGENT_TOKEN ?? '';
+if (!URL_BASE || !TOKEN) { console.error('Set FATTURA_URL and FATTURA_AGENT_TOKEN.'); process.exit(1); }
 
 async function pfxSigner(): Promise<{ signer: RawSigner; cert: forge.pki.Certificate }> {
   const p12 = forge.pkcs12.pkcs12FromAsn1(forge.asn1.fromDer(readFileSync(process.env.PFX_PATH!, 'binary')), process.env.PFX_PASSWORD ?? '');
@@ -75,7 +75,7 @@ async function main() {
   const heartbeat = () => api('POST', '/heartbeat', { version: VERSION, host: hostname(), certificate }).catch((e) => console.error('heartbeat:', e.message));
   await heartbeat();
   setInterval(heartbeat, 30_000);
-  console.log(`Fatura Signer ${VERSION} ready on ${hostname()} · ${certificate.subject}`);
+  console.log(`Fattura Signer ${VERSION} ready on ${hostname()} · ${certificate.subject}`);
   for (;;) {
     try {
       const { jobs } = await api('GET', '/jobs?wait=25');

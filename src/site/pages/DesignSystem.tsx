@@ -75,7 +75,7 @@ export function DesignSystem() {
           <div>
             <div className="text-eyebrow uppercase text-accent mb-3">{L('Design system · v2', 'نظام التصميم · الإصدار ٢')}</div>
             <h1 className="text-display">{L('Nile Ledger', 'دفتر النيل')}</h1>
-            <p className="mt-4 text-lead text-ink-muted max-w-[60ch]">{L('The tokens, type, components and rules behind Fatura’s product and website. Everything on this page is the live component, rendered with the current theme and language.', 'الرموز والخطوط والمكونات والقواعد خلف منتج فاتورة وموقعها. كل ما في الصفحة مكون حي بالسمة واللغة الحاليتين.')}</p>
+            <p className="mt-4 text-lead text-ink-muted max-w-[60ch]">{L('The tokens, type, components and rules behind Fattura’s product and website. Everything on this page is the live component, rendered with the current theme and language.', 'الرموز والخطوط والمكونات والقواعد خلف منتج فاتورة وموقعها. كل ما في الصفحة مكون حي بالسمة واللغة الحاليتين.')}</p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Segmented value={theme} onChange={setTheme} options={[{ value: 'light', label: L('Light', 'فاتح') }, { value: 'dark', label: L('Dark', 'داكن') }]} />
               <span className="text-[13px] text-ink-subtle">{L('Switch the language from the header to see RTL.', 'غيّر اللغة من الأعلى لترى الاتجاه من اليمين.')}</span>
@@ -226,7 +226,7 @@ export function DesignSystem() {
                 <div className="space-y-2 mt-2"><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-24" /></div>
               </Spec>
               <Spec label={L('Seal (signature graphic)', 'الختم')}>
-                <div className="flex flex-wrap items-center gap-6"><Stamp size={110} /><Stamp size={110} tone="ok" label="RECEIVED" sub="تم الاستلام" /><Stamp size={110} tone="gold" label="FATURA" sub="فاتورة" ring="ARABIC FIRST · " /></div>
+                <div className="flex flex-wrap items-center gap-6"><Stamp size={110} /><Stamp size={110} tone="ok" label="RECEIVED" sub="تم الاستلام" /><Stamp size={110} tone="gold" label="FATTURA" sub="فاتورة" ring="ARABIC FIRST · " /></div>
                 <p className="mt-4 text-[13px] text-ink-muted">{L('Once per marketing page, and for success moments. Never as decoration on working screens.', 'مرة لكل صفحة تسويقية ولحظات النجاح فقط.')}</p>
               </Spec>
             </div>

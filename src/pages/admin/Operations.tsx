@@ -30,7 +30,7 @@ export function Operations() {
   useEffect(() => { void refresh(); }, [mode]);
   return (
     <div className="animate-in">
-      <PageHeader title={L('Beta operations', 'تشغيل النسخة التجريبية')} description={L('Live server checks and release gates for the Fatura Beta. Values are read from the backend, not the dashboard sample data.', 'فحوص الخادم الفعلية ومتطلبات إطلاق النسخة التجريبية.')}
+      <PageHeader title={L('Beta operations', 'تشغيل النسخة التجريبية')} description={L('Live server checks and release gates for the Fattura Beta. Values are read from the backend, not the dashboard sample data.', 'فحوص الخادم الفعلية ومتطلبات إطلاق النسخة التجريبية.')}
         actions={<Button icon={<RefreshCw className={loading ? 'size-4 animate-spin' : 'size-4'} />} onClick={() => void refresh()} disabled={loading || mode !== 'api'}>{L('Refresh checks', 'تحديث الفحوص')}</Button>} />
       {mode !== 'api' && <Callout tone="warn" title={L('Preview only', 'معاينة فقط')} icon={<ShieldAlert className="size-4" />}>{L('Start the full-stack server to use operations. This static preview cannot inspect or control a server.', 'شغّل الخادم الكامل لاستخدام لوحة التشغيل. هذه المعاينة لا تتحكم بالخادم.')}</Callout>}
       {error && <Callout tone="bad" title={L('Server check failed', 'فشل فحص الخادم')} icon={<ShieldAlert className="size-4" />}>{error}</Callout>}

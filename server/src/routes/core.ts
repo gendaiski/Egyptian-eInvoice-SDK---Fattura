@@ -199,7 +199,7 @@ async function adminUpsert(c: Context, kind: string, id: string, b: Record<strin
       await r.putPlatform('leads', id, { ...lead, id, at: new Date().toISOString(), source: b.source === 'pricing' ? 'pricing' : 'contact', status: 'new' });
       return c.json({ ok: true }, 201);
     }
-    if (!user?.staffRole) throw new HttpError(403, 'forbidden', 'Fatura staff only.');
+    if (!user?.staffRole) throw new HttpError(403, 'forbidden', 'Fattura staff only.');
     const status = String(b.status);
     if (!['new', 'contacted', 'qualified', 'won', 'lost'].includes(status)) throw new HttpError(422, 'bad_status', 'Unknown lead status.');
     await r.putPlatform('leads', id, { ...existing, status });

@@ -23,7 +23,7 @@ if (existsSync('dist/index.html')) {
 
 await ensureReady();
 const port = env().PORT;
-serve({ fetch: app.fetch, port }, () => console.log(`Fatura listening on http://localhost:${port} (db: ${process.env.DATABASE_URL ? 'postgres' : 'embedded'})`));
+serve({ fetch: app.fetch, port }, () => console.log(`Fattura listening on http://localhost:${port} (db: ${process.env.DATABASE_URL ? 'postgres' : 'embedded'})`));
 
 if (process.env.WORKER !== 'off') {
   const run = async () => { try { await tick(await getDb()); } catch (e) { console.error('worker tick failed', e); } };
