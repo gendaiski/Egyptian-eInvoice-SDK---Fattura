@@ -6,19 +6,22 @@ import { ACTIVITY_CODES, TAX_TYPES, UNIT_TYPES } from '@/eta/codes';
 import { VALIDATORS } from '@/eta/mockClient';
 import { bi, useI18n } from '@/i18n';
 import { docTotal } from '@/store/model';
-import { useStore } from '@/store/store';
+import { seed } from '@/store/seed';
 import { InvoicePaper } from '@/components/InvoicePaper';
 import { Stamp } from '@/components/Stamp';
 import { LinkButton, Segmented, cx } from '@/components/ui';
 import { ArrowLink, CtaBand, EchoLine, Faq, Section, SectionHead, Wrap } from '../kit';
 
+// The public API bootstrap intentionally contains no tenant invoices. Keep the
+// marketing document independent of signed-in customer data.
+const marketing = seed();
+const sampleInvoice = marketing.docs.find((d) => d.direction === 'sent' && d.status === 'Valid' && d.documentType === 'I' && d.lines.length >= 2) ?? marketing.docs[0];
+
 export function Home() {
-  const { db } = useStore();
   const { L, lang, money, date } = useI18n();
-  const sample = db.docs.find((d) => d.direction === 'sent' && d.status === 'Valid' && d.documentType === 'I' && d.lines.length >= 2) ?? db.docs[0];
   const subtypes = TAX_TYPES.reduce((s, t) => s + t.subTypes.length, 0);
   const [model, setModel] = useState<'one' | 'rec' | 'inst'>('inst');
-  const total = docTotal(sample);
+  const total = docTotal(sampleInvoice);
   const today = new Date().toISOString().slice(0, 10);
   const inst = useMemo(() => buildInstallments(total, { kind: 'installments', count: 4, frequency: 'monthly', firstDueDate: today, downPaymentPct: 25 }), [total, today]);
   const runs = useMemo(() => recurringRuns({ kind: 'recurring', frequency: 'monthly', interval: 1, startDate: today, end: { type: 'never' }, delivery: 'submit_email', terms: 'net30' }, 5), [today]);
@@ -60,7 +63,7 @@ export function Home() {
             </div>
             <div className="fatura-v2-invoice-frame" aria-label={L('A sample invoice produced by Fattura in the simulator', 'نموذج فاتورة من فاتورة في بيئة المحاكاة')}>
               <div className="[&_.print-area]:shadow-pop pointer-events-none select-none">
-                <InvoicePaper doc={sample} company={db.company} env="simulator" />
+                <InvoicePaper doc={sampleInvoice} company={marketing.company} env="simulator" />
               </div>
             </div>
             <div className="fatura-v2-stage-bottomline"><CheckCircle2 className="size-4 text-accent" />{L('From draft to a traceable document', 'من المسودة إلى مستند قابل للتتبع')}</div>
@@ -120,7 +123,7 @@ export function Home() {
           <div className="card p-6 sm:p-8 animate-in" key={model}>
             {model === 'one' && (
               <div>
-                <div className="text-[13px] text-ink-muted">{sample.internalID} · {sample.counterparty.name}</div>
+                <div className="text-[13px] text-ink-muted">{sampleInvoice.internalID} · {sampleInvoice.counterparty.name}</div>
                 <div className="mt-1 font-display text-[34px] font-semibold tabular">{money(total)}</div>
                 <div className="mt-6 grid grid-cols-3 gap-3 text-[13px]">
                   {[['net15', 15], ['net30', 30], ['net60', 60]].map(([t, d]) => { const due = new Date(); due.setDate(due.getDate() + (d as number)); return (
